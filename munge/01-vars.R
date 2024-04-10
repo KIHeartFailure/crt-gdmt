@@ -2,6 +2,7 @@
 
 tabvars <- c(
   # demo
+  "diff_crt_shf_cat",
   "indexyear_cat",
   "shf_sex",
   "shf_age",
@@ -14,9 +15,9 @@ tabvars <- c(
   "shf_followuplocation_cat",
 
   # treatments
-  "sos_lm_rasiarni",
-  "sos_lm_bbl",
-  "sos_lm_mra",
+  # "sos_lm_rasiarni",
+  # "sos_lm_bbl",
+  # "sos_lm_mra",
   "sos_lm_sglt2",
   # "sos_lm_sglt2_empa_dapa",
   "sos_lm_diuretic",
@@ -33,6 +34,8 @@ tabvars <- c(
   "sos_lm_nitrate",
   # "sos_lm_ratecontrol",
   "sos_lm_antiarrhythmic",
+  "sos_com_icd",
+  "sos_com_pm",
 
   # comorbs
   "sos_com_diabetes",
@@ -65,6 +68,7 @@ tabvars <- c(
 # Variables for models (imputation, log, cox reg) ----------------------------
 
 tabvars_not_in_mod <- c(
+  "diff_crt_shf_cat",
   # demo
   "shf_age",
   "sos_durationhf",
@@ -73,19 +77,15 @@ tabvars_not_in_mod <- c(
   "sos_lm_sglt2",
   "sos_lm_insulin",
   "sos_lm_oralantidiabetic",
+  "sos_com_icd",
+  "sos_com_pm",
 
   # comorbs
   "sos_com_pci",
   "sos_com_cabg",
   "sos_com_dementia",
   "sos_com_charlsonci",
-  "sos_com_charlsonci_cat",
-
-  # socec
-  "scb_famtype",
-  "scb_child",
-  "scb_education",
-  "scb_dispincome_cat"
+  "sos_com_charlsonci_cat"
 )
 
 modvars <- tabvars[!(tabvars %in% tabvars_not_in_mod)]
@@ -94,11 +94,12 @@ metavars <- bind_rows(
   metavars,
   tibble(
     variable = c(
+      "diff_crt_shf",
       "indexyear",
       "sos_prevhfh1yr",
-      "sos_lm_rasiarni",
-      "sos_lm_bbl",
-      "sos_lm_mra",
+      "rasiarni",
+      "bbl",
+      "mra",
       "sos_lm_sglt2",
       "sos_lm_diuretic",
       "sos_lm_ccb",
@@ -109,9 +110,12 @@ metavars <- bind_rows(
       "sos_lm_lipidlowering",
       "sos_lm_digoxin",
       "sos_lm_nitrate",
-      "sos_lm_antiarrhythmic"
+      "sos_lm_antiarrhythmic",
+      "sos_com_icd",
+      "sos_com_pm"
     ),
     label = c(
+      "Time CRT to SwedeHF registration",
       "Calender year",
       "Previous heart failure hospitalization < 1 year",
       "ACEi/ARB/ARNi",
@@ -127,7 +131,24 @@ metavars <- bind_rows(
       "Lipid lowering",
       "Digoxin",
       "Nitrate",
-      "Antiarrhythmic"
-    )
+      "Antiarrhythmic",
+      "ICD",
+      "Pacemaker"
+    ),
+    unit = c("days", rep(NA, 18))
+  )
+)
+
+gdmt <- tibble(
+  var = c("bbl", "rasiarni", "mra"),
+  label = c(
+    "ACEi/ARB/ARNi",
+    "Beta-blocker",
+    "MRA"
+  ),
+  ATC = c(
+    "C07",
+    "C09A|C09B|C09C|C09D",
+    "C03DA"
   )
 )

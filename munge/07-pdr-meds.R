@@ -4,19 +4,21 @@ load(here(shfdbpath, "data", datadate, "20221012/lmswedehf.RData"))
 
 lmcrt <- lmswedehf %>%
   filter(
-    ANTAL >= 0
+    ANTAL >= 0 &
+      !is.na(forpddd)
   )
 
 lmcrt <- left_join(
   rsdata %>%
     select(lopnr, indexdtm),
   lmcrt,
-  by = "lopnr"
+  by = "lopnr",
+  relationship = "many-to-many"
 )
 
 lmsel <- lmcrt %>%
   mutate(diff = as.numeric(EDATUM - indexdtm)) %>%
-  filter(diff > -120) %>%
+  filter(diff >= -120 & diff <= 0) %>%
   select(lopnr, indexdtm, EDATUM, ATC)
 
 rm(lmswedehf)

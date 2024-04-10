@@ -56,6 +56,9 @@ load(here("data/clean-data/data.RData"))
 # load workbook to write tables to Excel
 wb <- loadWorkbook(here("output/tabs/tables.xlsx"))
 sheets <- names(wb)
+
+# load pptx file with figs
+figs <- officer::read_pptx(path = here::here("output/figs/figs.pptx"))
 ```           
 
 \newpage
@@ -77,6 +80,7 @@ In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32
 SwedeHF was linked with national Swedish registries (SHFDB version 4.1.2) through the 
 Swedish personal identity number (PIN)[@pin]: 
 
+- The ICD/PM Registry
 - The National Patient Register (The National Board of Health and Welfare) for 
 additional comorbidities and the hospitalization outcomes
 - The National Prescribed Drug Register (The National Board of Health and Welfare) 
@@ -103,7 +107,9 @@ Individual consent was not required, but patients were informed of entry into Sw
 ```{r}
 #| label: tbl-flow
 #| tbl-cap: Information for flowchart
-default_kable(flow)
+default_kable(flow) %>%
+  row_spec(c(1, 11), bold = T) %>%
+  column_spec(1, width = "15cm")
 ```
 
 ## Definitions
@@ -118,14 +124,26 @@ Information on data sources, definitions etc. are found https://kiheartfailure.g
 
 Baseline is defined as date of discharge or, if missing, date of admittance/visit for the 
 first encounter in NPR with CRT for the CRT population and registration in SwedeHF for the controls. 
+If multiple SwedeHF registrations exists, the registration closest to CRT (within 1 year) is selected. 
 
-### Medications
+### GDMT
 
-Medications at baseline are defined as a dispensed prescription in NPDR 4 months prior up until day before baseline. 
+GDMT at baseline are defined as a dispensed prescription in NPDR 4 months prior up until day before baseline. 
 
-Medications at 1 year follow-up are defined as a dispensed prescription in NPDR 12 months $\pm$ 2 months after baseline. 
+GDMT at 1 year follow-up are defined as a dispensed prescription in NPDR 12 months $\pm$ 2 months after baseline. 
 
 The prescription closest to baseline and 1 year is chosen if multiple prescriptions exist. 
+
+PLEASE CHECK MY SUGGESTED DEFINITION BELOW:
+
+The difference between baseline and 1 year follow-up is defined as: 
+
+- No change: If the patient is not on medication at baseline and not on medication at fu OR no change in achieved % target dose
+- Increase: If the patient is not on medication at baseline and on medication at fu OR increase in achieved % target dose
+- Decrease: If the patient is on medication at baseline and not on medication at fu OR decrease in achieved % target dose
+
+For the combined GDMT variable the sum of the 3 individual medications is calculated (No change: 0, Increase: 1, Decrease: -1) 
+and if the summarized variable is 0 = No change, >0: Increase, <0: Decrease. 
 
 # Statistical analysis 
 
@@ -139,7 +157,7 @@ comparisons were made and therefore the results should be viewed with care.
 
 Missing data was imputed with multiple imputation (n = 10) using mice [@mice] 
 and Rubin’s rules was used for combining estimates and standard errors across imputed data sets. 
-Variables included in the model are indicated in @tbl-base. CRT was not included in the model. 
+Variables included in the model are indicated in @tbl-base. CRT and GDMT were not included in the model. 
 
 ## Baseline characteristics
 
@@ -148,6 +166,20 @@ Categorical variables are presented with n and percentage and tested for
 differences between groups with the chi-square test. 
 Continuous variables are presented with median [first quartile-third quartile] and tested for 
 differences between groups with the Kruskal-Wallis test. 
+
+## GDMT
+
+For the predictors model No change and decrease are combined. OK???? Or do you want to keep 3 levels? Should this only be for patients with CRT (looks like that from the project plan but perhaps also the controls should be included as a comparison)??? 
+
+The association between baseline characteristics and the respective change in GDMT together with the combined GDMT was evaluated using a multivariable logistic regression 
+including the variables shown in @fig-predictors. The variables were selected based on clinical relevance. 
+
+If both CRT and control patients with interaction effect.... Note that this causes the estimates to be from different multivariable models.  
+
+### Assumptions
+
+Possible outliers were evaluated using Cook's distance and multicollinearity was 
+evaluated using the Variance Inflation Factor (VIF) XXX. 
 
 # Results
 
@@ -174,8 +206,21 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 
 {{< include src/base_tab.qmd >}}
 
-#{{< include src/bar.qmd >}}
+\clearpage
 
+## GDMT
+
+{{< include src/medbase_tab.qmd >}}
+
+Ok with the below plot instead of those suggested in project plan?;
+
+{{< include src/bar.qmd >}}
+
+## Predictors of increase in GDMT
+
+Either a table or a Forestplot?
+
+\clearpage
 
 # Reproducibility
 
@@ -183,7 +228,7 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 
 The R code for all data handling and statistical analyses are found: 
 
-https://github.com/KIHeartFailure/swedehf-crt. On publication
+https://github.com/KIHeartFailure/crt-gdmt. On publication
 the repository will be made public so as to 
 link to it from the resulting article for increased transparency and code sharing.
 No data or output is stored in the repository. 

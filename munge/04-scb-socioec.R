@@ -4,7 +4,8 @@ child <- bind_rows(barnadop, barnbio)
 child2 <- inner_join(
   rsdata %>% select(lopnr, indexdtm, indexyear),
   child,
-  by = c("lopnr" = "LopNr")
+  by = c("lopnr" = "LopNr"),
+  relationship = "many-to-many"
 )
 
 child2 <- child2 %>%

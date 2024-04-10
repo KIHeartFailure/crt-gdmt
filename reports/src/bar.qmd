@@ -1,0 +1,44 @@
+
+```{r}
+#| label: fig-barplot
+#| cache: true
+#| cache.comments: false
+#| fig-cap: "GDMT by CRT"
+
+figdata <- rsdata %>%
+  select(crt, gdmtdiff_cat, bbldiff, rasiarnidiff, mradiff) %>%
+  pivot_longer(cols = c(gdmtdiff_cat, bbldiff, rasiarnidiff, mradiff)) %>%
+  mutate(
+    name = str_remove_all(name, "diff|_cat"),
+    med = factor(name,
+      levels = c("gdmt", "bbl", "rasiarni", "mra"),
+      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA")
+    )
+  ) %>%
+  group_by(crt, med, .drop = F) %>%
+  count(value) %>%
+  mutate(
+    p = n / sum(n) * 100
+  ) %>%
+  ungroup()
+
+p <- ggplot(figdata, aes(x = crt, y = p, fill = value)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_fill_manual(values = global_cols[4:1]) +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme_classic() +
+  theme(
+    text = element_text(size = 24, face = "bold"),
+    legend.position = "bottom",
+    legend.box = "vertical",
+    legend.title = element_blank(),
+    axis.text = element_text(color = "black"),
+    axis.title.x = element_blank()
+  ) +
+  labs(y = "Proportion (%)") +
+  geom_text(aes(label = fn(p, dec = 0)), position = position_dodge(width = 0.9), vjust = -0.25, size = 6.7, fontface = "bold") +
+  facet_grid(cols = vars(med))
+
+create_pptx(p)
+p
+```

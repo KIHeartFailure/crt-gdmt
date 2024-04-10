@@ -248,6 +248,34 @@ rsdata <- create_sosvar(
   valsclass = "fac",
   warnings = FALSE
 )
+rsdata <- create_sosvar(
+  sosdata = patregrsdata,
+  cohortdata = rsdata,
+  patid = lopnr,
+  indexdate = indexdtm,
+  sosdate = INDATUM,
+  opvar = OP_all,
+  type = "com",
+  name = "icd",
+  opkod = " FPG",
+  # stoptime = -5 * 365.25,
+  valsclass = "fac",
+  warnings = FALSE
+)
+rsdata <- create_sosvar(
+  sosdata = patregrsdata,
+  cohortdata = rsdata,
+  patid = lopnr,
+  indexdate = indexdtm,
+  sosdate = INDATUM,
+  opvar = OP_all,
+  type = "com",
+  name = "pm",
+  opkod = " FPE| FPF| DF013| ZXG40| ZXG50| TFP00",
+  # stoptime = -5 * 365.25,
+  valsclass = "fac",
+  warnings = FALSE
+)
 
 outcommeta <- metaout
 rm(metaout)
@@ -262,7 +290,8 @@ hfhospsos <- patregrsdata %>%
 hfhosp <- inner_join(
   rsdata %>% select(lopnr, indexdtm),
   hfhospsos,
-  by = "lopnr"
+  by = "lopnr",
+  relationship = "many-to-many"
 ) %>%
   mutate(tmp_sosdtm = coalesce(UTDATUM, INDATUM)) %>%
   filter(tmp_sosdtm <= indexdtm) %>%

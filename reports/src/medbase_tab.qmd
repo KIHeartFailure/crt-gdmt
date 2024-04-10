@@ -1,9 +1,9 @@
 ```{r}
-#| label: basetabfunc
+#| label: medtabfunc
 #| cache: true
 #| cache.comments: false
 
-basetabfunc <- function(x, data, stratavar, catdig, contdig) {
+medtabfunc <- function(x, data, stratavar, catdig, contdig) {
   tmp <- data %>%
     filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
 
@@ -122,115 +122,74 @@ basetabfunc <- function(x, data, stratavar, catdig, contdig) {
 ```
 
 ```{r}
-#| label: tbl-base
+#| label: tbl-med
 #| cache: true
 #| cache.comments: false
-#| dependson: basetabfunc
-#| tbl-cap: "Baseline characteristics"
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT"
 
 contdig <- 0
 catdig <- 0
 
-tab <- rsdata %>%
-  count(crt, .drop = F) %>%
-  mutate(n = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")")) %>%
-  pivot_wider(names_from = crt, values_from = n) %>%
-  mutate(
-    var = "N (%)",
-    level = NA,
-    p = NA,
-    pmis = NA
-  ) %>%
-  select(var, level, pmis, levels(rsdata %>% pull(crt)), p)
+medvarsbase <- c(
+  "sos_lm_bbl1", "targetdose_cat_bbl_1", "targetdose_bbl_1",
+  "sos_lm_rasiarni1", "targetdose_cat_rasiarni_1", "targetdose_rasiarni_1",
+  "sos_lm_mra1", "targetdose_cat_mra_1", "targetdose_mra_1"
+)
+medvarsfu <- c(
+  "sos_lm_bbl2", "targetdose_cat_bbl_2", "targetdose_bbl_2",
+  "sos_lm_rasiarni2", "targetdose_cat_rasiarni_2", "targetdose_rasiarni_2",
+  "sos_lm_mra2", "targetdose_cat_mra_2", "targetdose_mra_2"
+)
 
-tabtmp <- sapply(tabvars,
-  FUN = basetabfunc, data = rsdata,
+tabbase <- lapply(medvarsbase,
+  FUN = medtabfunc, data = rsdata,
   stratavar = "crt", catdig = catdig, contdig = contdig
 )
+tabbase <- bind_rows(tabbase) %>%
+  select(var, level, Control, CRT, p)
 
-tabtmp <- bind_rows(tabtmp)
-tab <- bind_rows(tab, tabtmp)
-
-tab <- tab %>%
-  mutate(
-    # if recoding or categorizing will still get org label
-    var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
-    # if shf/sos combination  will still get org label
-    var_tmp = str_replace_all(var_tmp, "shf_sos_com_", "sos_com_")
-  )
-
-tab <- left_join(tab,
-  metavars %>%
-    select(variable, label, unit),
-  by = c("var_tmp" = "variable")
-) %>%
-  mutate(
-    Variable = coalesce(label, var_tmp),
-    Variable = if_else(!is.na(unit),
-      paste0(Variable, " (", unit, ")"),
-      Variable
-    ),
-    Variable = if_else(!is.na(level) & !is.na(Variable),
-      paste0(Variable, " ", level),
-      coalesce(Variable, paste0("  ", level))
-    ),
-    # small fixes
-    Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-    CRT = if_else(level == "Control", "-", CRT),
-    Control = if_else(level %in% c("365-182", "183-0"), "-", Control)
-  )
-
-# footnotes
-tab <- tab %>%
-  mutate(
-    footnote1 = if_else(!is.na(var) & var %in% modvars, footnote_marker_alphabet(1, format = "latex"), "")
-  ) %>%
-  unite(footnote, starts_with("footnote"), sep = "")
-
-cn <- c("Variable", c("Missing (%)", levels(rsdata %>% pull(crt)), "p-value"))
-
-footnotetext <- c(
-  "Included in multiple imputation and regression models."
+tabfu <- lapply(medvarsfu,
+  FUN = medtabfunc, data = rsdata,
+  stratavar = "crt", catdig = catdig, contdig = contdig
 )
+tabfu <- bind_rows(tabfu) %>%
+  select(Control, CRT, p)
+
+tabboth <- bind_cols(tabbase, tabfu) %>%
+  mutate(
+    var = case_when(
+      var == "sos_lm_bbl1" ~ "Treated with Beta-blocker",
+      var == "sos_lm_rasiarni1" ~ "Treated with ACEi/ARB/ARNi",
+      var == "sos_lm_mra1" ~ "Treated with MRA",
+      !is.na(var) ~ "Target dose (%)"
+    ),
+    var = if_else(!is.na(level) & !is.na(var),
+      paste0(var, " ", level),
+      coalesce(var, paste0("  ", level))
+    )
+  ) %>%
+  select(-level)
+
+cn <- c("Variable", rep(c(levels(rsdata %>% pull(crt)), "p-value"), 2))
 
 # excel
-tab_xls <- tab %>%
-  mutate(
-    Variable = paste0(Variable, footnote),
-    Variable = str_remove_all(Variable, "textsuperscript|\\}|\\{"),
-    Variable = str_replace_all(Variable, "\\\\", " ")
-  ) %>%
-  select(Variable, pmis:p) %>%
-  add_row(Variable = "") %>%
-  add_row(Variable = paste0("a ", footnotetext[1]))
+make_one_xlsxsheet(tabboth, colnames = cn)
 
-make_one_xlsxsheet(tab_xls, colnames = cn)
+cn <- sanitize_text(cn)
 
-# footnotes
-tab <- tab %>%
-  mutate(
-    # so no probs
-    Variable = sanitize_text(Variable),
-    Variable = paste0(Variable, footnote),
-    Variable = str_replace_all(Variable, fixed("²"), "\\textsuperscript{2}"),
-    Variable = str_replace_all(Variable, fixed("$>$="), "$\\geq$"),
-    Variable = str_replace_all(Variable, fixed("$<$="), "$\\leq$")
-  ) %>%
-  select(Variable, pmis:p)
+tabboth <- tabboth %>%
+  mutate(var = sanitize_text(var))
 
-indent_rows <- tab %>%
+indent_rows <- tabboth %>%
   mutate(
-    indent_rows = str_detect(Variable, "  "),
+    indent_rows = str_detect(var, "  "),
     rows = row_number()
   ) %>%
   filter(indent_rows) %>%
   pull(rows)
 
-cn <- sanitize_text(cn)
-
-default_kable(tab,
-  font_size = 7.5,
-  longtable = TRUE,
+default_kable(tabboth,
   escape = FALSE,
   col.names = cn
 ) %>%
@@ -241,7 +200,7 @@ default_kable(tab,
     general = c(
       "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
     ),
-    alphabet = footnotetext,
     threeparttable = T
-  )
+  ) %>%
+  add_header_above(c(" " = 1, "Baseline" = 3, "1 year follow-up" = 3))
 ```

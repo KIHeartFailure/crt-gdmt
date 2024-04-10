@@ -6,6 +6,9 @@ source(here::here("setup/setup.R"))
 
 load(here(shfdbpath, "data/v412/rsdata412.RData"))
 load(file = paste0(shfdbpath, "/data/", datadate, "/patregrsdata.RData"))
+load(paste0(shfdbpath, "/data/", datadate, "/rawData_scb.RData"))
+load(file = paste0(shfdbpath, "/data/", datadate, "/rawData_sosdors.RData"))
+icdpm <- read_sas(paste0(shfdbpath, "/raw-data/SOS/20220908/komp ICDPMreg regstockholm/sos_result.sas7bdat"))
 
 # Meta data ect -----------------------------------------------------------
 
@@ -15,15 +18,15 @@ load(here(paste0(shfdbpath, "data/v412/meta_statreport.RData")))
 # Munge data --------------------------------------------------------------
 
 source(here("munge/01-vars.R"))
-source(here("munge/02-pop-selection-crt.R"))
-source(here("munge/03-pop-selection-control.R"))
-load(paste0(shfdbpath, "/data/", datadate, "/rawData_scb.RData"))
+source(here("munge/02-add-longerfu.R"))
+source(here("munge/03-pop-selection.R"))
 source(here("munge/04-scb-socioec.R"))
-source(here("munge/05-npr-outcome.R"))
+source(here("munge/05-npr-comorb.R"))
 source(here("munge/06-charlsoncomorbindex_sos.R"))
 source(here("munge/07-pdr-meds.R"))
-source(here("munge/08-fix-vars.R"))
-# source(here("munge/09-mi.R"))
+source(here("munge/08-pdr-medgdmt.R"))
+source(here("munge/09-fix-vars.R"))
+source(here("munge/10-mi.R"))
 
 # Cache/save data ---------------------------------------------------------
 
@@ -31,13 +34,14 @@ save(
   file = here("data/clean-data/data.RData"),
   list = c(
     "rsdata",
-    # "imprsdata",
+    "imprsdata",
     "flow",
     "modvars",
     "tabvars",
     "metalm",
     "metavars",
-    "outcommeta"
+    "outcommeta",
+    "gdmt"
   )
 )
 
