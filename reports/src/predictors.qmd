@@ -1,0 +1,308 @@
+```{r}
+#| label: predictorsfunc
+#| cache: true
+#| cache.comments: false
+#| output: false
+
+predictorsfunc <- function(medvar) {
+  modvarstmp <- c(modvars, "sos_lm_bbl1_3", "sos_lm_rasiarni1_3", "sos_lm_mra1_3")
+
+  levcrt <- levels(rsdata %>% pull(crt))
+
+  for (i in seq_along(modvarstmp)) {
+    levx <- levels(rsdata %>% pull(!!sym(modvarstmp[i])))
+    for (j in seq_along(levcrt)) {
+      logreg <- with(imprsdata, glm(formula(paste0(medvar, " == 'Increase' ~ ", modvarstmp[i], " * relevel(crt, ref = '", levcrt[j], "') + ", paste(setdiff(modvarstmp, modvarstmp[i]), collapse = " + "))),
+        family = binomial(link = "logit")
+      ))
+      logregsum <- summary(pool(logreg))
+
+      logregout <- tibble(
+        var = as.character(logregsum$term),
+        or = exp(logregsum$estimate),
+        lci = exp(logregsum$estimate - global_z05 * logregsum$std.error),
+        uci = exp(logregsum$estimate + global_z05 * logregsum$std.error),
+        p = fn(logregsum$p.value, dig = 3, p = TRUE),
+        cols = case_when(
+          logregsum$p.value >= 0.05 ~ 2,
+          or >= 1 ~ 3,
+          or < 1 ~ 1
+        ),
+        lev = levcrt[j]
+      )
+
+      logregout2 <- logregout %>%
+        slice(2:(length(levx)))
+
+      # p for interaction
+      logregout2 <- logregout2 %>% add_column(pint = fn(logregout %>% filter(str_detect(var, ":relevel\\(crt")) %>% pull(p), dig = 3, p = TRUE))
+
+      if (i == 1 & j == 1) {
+        predout <<- logregout2
+      } else {
+        predout <<- bind_rows(predout, logregout2)
+      }
+    }
+  }
+  # save <- predout
+  # predout <- save
+  predout <- predout %>%
+    mutate(
+      orci = paste0(
+        fn(or, 2), " (",
+        fn(lci, 2), "-",
+        fn(uci, 2), ")"
+      ),
+      cols = factor(cols, levels = 1:3),
+      var = str_replace_all(var, fixed("Yes"), "")
+    )
+
+  predout <- left_join(predout,
+    metavars %>%
+      select(variable, label),
+    by = c("var" = "variable")
+  ) %>%
+    mutate(
+      var = coalesce(label, var),
+      var = case_when(
+        var == "indexyear_cat2016-2018" ~ "Year 2016-2018 vs 2009-2015",
+        var == "indexyear_cat2019-2021" ~ "Year 2019-2021 vs 2009-2015",
+        var == "shf_sexMale" ~ "Male vs Female",
+        var == "shf_age_cat>80" ~ "Age (years) >80 vs <70",
+        var == "shf_age_cat70-80" ~ "Age (years) 70-80 vs <70",
+        var == "shf_followuplocation_catHospital" ~ "Follow-up hospital vs PC/Other",
+        var == "scb_famtypeLiving alone" ~ "Living alone vs Cohabitating",
+        var == "scb_educationSecondary school" ~ "Secondary vs Compulsory school",
+        var == "scb_educationUniversity" ~ "University vs Compulsory school",
+        var == "scb_dispincome_cat3rd tertile within year" ~ "Income 3rd tertile vs 1st tertile",
+        var == "scb_dispincome_cat2nd tertile within year" ~ "Income 2nd tertile vs 1st tertile",
+        var == "sos_lm_rasiarni1_3<50" ~ "ACEi/ARB/ARNi TDe (%) <50 vs No",
+        var == "sos_lm_rasiarni1_3>=50" ~ "ACEi/ARB/ARNi TD (%) >=50 vs No",
+        var == "sos_lm_bbl1_3<50" ~ "Beta-blocker TD (%) <50 vs No",
+        var == "sos_lm_bbl1_3>=50" ~ "Beta-blocker TD (%) >=50 vs No",
+        var == "sos_lm_mra1_3<50" ~ "MRA TD (%) <50 vs No",
+        var == "sos_lm_mra1_3>=50" ~ "MRA TD (%) >=50 vs No",
+        var == "Muscoloskeletal/connective tissue diseases within 3 years" ~ "Muscoloskeletal diseases",
+        var == "Previous heart failure hospitalization < 1 year" ~ "Previous HFH < 1 year",
+        var == "Malignant cancer within 3 years" ~ "Cancer",
+        TRUE ~ var
+      ),
+      var = str_replace_all(var, ">=", "\u2265"),
+      var = str_replace_all(var, "<=", "\u2264"),
+      var2 = forcats::fct_rev(forcats::fct_inorder(var))
+    )
+
+  # plot it
+  size_use <- 12
+
+  # min(predout$lci)
+  # max(predout$uci)
+
+  xmin <- .04
+  xmax <- 3.4
+
+  p1 <- ggplot(predout %>% filter(lev == "No CRT"), aes(x = or, y = var2, color = cols)) +
+    # Add a reference dashed line at 1
+    geom_vline(xintercept = 1, linetype = "dashed", color = "grey", linewidth = 0.6) +
+    # Add dot plot and error bars
+    geom_errorbar(aes(xmin = lci, xmax = uci), width = 0, linewidth = 0.5) +
+    geom_point(size = 1.5, shape = 15) +
+    scale_color_manual(values = global_cols[c(1, 2, 3)]) +
+    theme_classic() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.ticks.y = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_line(colour = "white"),
+      plot.margin = unit(c(0, 0, 0, 0), "mm"),
+      axis.text.x = element_text(color = "black"),
+      panel.grid.major.y = element_line(colour = "grey94")
+    ) +
+    scale_x_continuous(trans = "log", breaks = c(xmin, 1, xmax), limits = c(xmin, xmax))
+
+  t1 <- ggplot(predout %>% filter(lev == "No CRT")) +
+    geom_text(aes(y = var2, x = 1, label = orci), size = size_use / .pt * 0.8, fontface = "bold") +
+    theme_classic() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.ticks.y = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_line(colour = "white"),
+      plot.margin = unit(c(0, 0, 0, 0), "mm"),
+      axis.line.x = element_line(color = "white"),
+      axis.ticks.x = element_line(color = "white"),
+      axis.text.x = element_text(color = "white")
+    )
+
+  p2 <- ggplot(predout %>% filter(lev == "CRT"), aes(x = or, y = var2, color = cols)) +
+    # Add a reference dashed line at 1
+    geom_vline(xintercept = 1, linetype = "dashed", color = "grey", linewidth = 0.6) +
+    # Add dot plot and error bars
+    geom_errorbar(aes(xmin = lci, xmax = uci), width = 0, linewidth = 0.5) +
+    geom_point(size = 1.5, shape = 15) +
+    scale_color_manual(values = global_cols[c(1, 2, 3)]) +
+    theme_classic() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.ticks.y = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_line(colour = "white"),
+      plot.margin = unit(c(0, 0, 0, 0), "mm"),
+      axis.text.x = element_text(color = "black"),
+      panel.grid.major.y = element_line(colour = "grey94")
+    ) +
+    scale_x_continuous(trans = "log", breaks = c(xmin, 1, xmax), limits = c(xmin, xmax))
+
+  t2 <- ggplot(predout %>% filter(lev == "CRT")) +
+    geom_text(aes(y = var2, x = 1, label = orci), size = size_use / .pt * 0.8, fontface = "bold") +
+    theme_classic() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.ticks.y = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_line(colour = "white"),
+      plot.margin = unit(c(0, 0, 0, 0), "mm"),
+      axis.line.x = element_line(color = "white"),
+      axis.ticks.x = element_line(color = "white"),
+      axis.text.x = element_text(color = "white")
+    )
+
+  labs <- ggplot(predout %>% filter(lev == "CRT"), aes(x = or, y = var2)) +
+    geom_blank() +
+    theme_classic() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.ticks.y = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_text(color = "black", hjust = 0),
+      axis.line.y = element_line(colour = "white"),
+      plot.margin = unit(c(0, 0, 0, 0), "mm"),
+      axis.line.x = element_line(color = "white"),
+      axis.ticks.x = element_line(color = "white"),
+      axis.text.x = element_text(color = "white")
+    )
+
+  pint <- ggplot(predout %>% filter(lev == "CRT")) +
+    geom_text(aes(y = var2, x = 1, label = pint), size = size_use / .pt * 0.8, fontface = "bold") +
+    theme_classic() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.ticks.y = element_blank(),
+      axis.title = element_blank(),
+      axis.text.y = element_blank(),
+      axis.line.y = element_line(colour = "white"),
+      plot.margin = unit(c(0, 0, 0, 0), "mm"),
+      axis.line.x = element_line(color = "white"),
+      axis.ticks.x = element_line(color = "white"),
+      axis.text.x = element_text(color = "white")
+    )
+
+  pall1 <- p1 + t1 +
+    plot_annotation(
+      title = "No CRT",
+      subtitle = "Odds Ratio (95% CI)",
+      theme = theme(
+        text = element_text(size = size_use, face = "bold"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)
+      )
+    )
+
+  pall2 <- p2 + t2 +
+    plot_annotation(
+      title = "CRT",
+      subtitle = "Odds Ratio (95% CI)",
+      theme = theme(
+        text = element_text(size = size_use, face = "bold"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)
+      )
+    )
+
+  labs <- labs +
+    plot_annotation(
+      title = " ",
+      subtitle = " ",
+      theme = theme(
+        text = element_text(size = size_use, face = "bold"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)
+      )
+    )
+
+  pint <- pint +
+    plot_annotation(
+      title = " ",
+      subtitle = "P interaction",
+      theme = theme(
+        text = element_text(size = size_use, face = "bold"),
+        plot.title = element_text(hjust = 0.5),
+        plot.subtitle = element_text(hjust = 0.5)
+      )
+    )
+
+  pall <- wrap_elements(labs) + wrap_elements(pall1) + wrap_elements(pall2) + wrap_elements(pint) +
+    plot_layout(nrow = 1, widths = c(3, 3.4, 3.4, 1))
+
+  create_pptx(pall, width = 10, height = 10)
+  pall
+}
+```
+
+```{r}
+#| label: fig-predictors-combined
+#| cache: true
+#| cache.comments: false
+#| dependson: predictorsfunc
+#| fig-cap: "Associations between baseline characteristics and increase in Combined"
+#| fig-width: 10
+#| fig-height: 10
+
+predictorsfunc(medvar = "gdmtdiff_cat2")
+```
+
+```{r}
+#| label: fig-predictors-bbl
+#| cache: true
+#| cache.comments: false
+#| dependson: predictorsfunc
+#| fig-cap: "Associations between baseline characteristics and increase in Beta-blocker"
+#| fig-width: 10
+#| fig-height: 10
+
+predictorsfunc(medvar = "bbldiff2")
+```
+
+```{r}
+#| label: fig-predictors-rasiarni
+#| cache: true
+#| cache.comments: false
+#| dependson: predictorsfunc
+#| fig-cap: "Associations between baseline characteristics and increase in ACEi/ARB/ARNi"
+#| fig-width: 10
+#| fig-height: 10
+
+predictorsfunc(medvar = "rasiarnidiff2")
+```
+
+```{r}
+#| label: fig-predictors-mra
+#| cache: true
+#| cache.comments: false
+#| dependson: predictorsfunc
+#| fig-cap: "Associations between baseline characteristics and increase in MRA"
+#| fig-width: 10
+#| fig-height: 10
+
+predictorsfunc(medvar = "mradiff2")
+```

@@ -142,8 +142,8 @@ metavars <- bind_rows(
 gdmt <- tibble(
   var = c("bbl", "rasiarni", "mra"),
   label = c(
-    "ACEi/ARB/ARNi",
     "Beta-blocker",
+    "ACEi/ARB/ARNi",
     "MRA"
   ),
   ATC = c(

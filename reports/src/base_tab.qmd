@@ -176,8 +176,8 @@ tab <- left_join(tab,
     ),
     # small fixes
     Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-    CRT = if_else(level == "Control", "-", CRT),
-    Control = if_else(level %in% c("365-182", "183-0"), "-", Control)
+    `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
+    pmis = if_else(var == "diff_crt_shf_cat", "0", pmis)
   )
 
 # footnotes

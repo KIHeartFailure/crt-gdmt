@@ -1,0 +1,65 @@
+```{r}
+#| label: sankeyfunc
+#| cache: true
+#| cache.comments: false
+
+size_use <- 20
+
+sankeyfunc <- function(med, medname) {
+  sankeydata <- rsdata %>%
+    group_by(crt) %>%
+    count(!!sym(paste0("sos_lm_", med, "1")), !!sym(paste0("sos_lm_", med, "2"))) %>%
+    ungroup() %>%
+    mutate(
+      !!sym(paste0("sos_lm_", med, "1")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "1")), ">=", "\u2265")),
+      !!sym(paste0("sos_lm_", med, "2")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "2")), ">=", "\u2265"))
+    )
+
+  p <- ggplot(
+    data = sankeydata,
+    aes(axis1 = !!sym(paste0("sos_lm_", med, "1")), axis2 = !!sym(paste0("sos_lm_", med, "2")), y = n)
+  ) +
+    scale_fill_manual(values = global_cols, na.translate = F) +
+    geom_alluvium(aes(fill = !!sym(paste0("sos_lm_", med, "1")))) +
+    geom_stratum() +
+    geom_text(
+      stat = "stratum",
+      aes(label = after_stat(stratum)),
+      size = 5, fontface = "bold"
+    ) +
+    scale_x_discrete(
+      limits = c("Baseline", "1 year"),
+      expand = c(0.15, 0.05)
+    ) +
+    theme_void() +
+    theme(
+      text = element_text(size = size_use, face = "bold"),
+      legend.position = "none",
+      axis.text = element_text(color = "black"),
+      axis.text.y = element_blank() # ,
+      # axis.title.y = element_text(color = "black")
+    ) +
+    # labs(y = medname) +
+    facet_wrap(vars(crt), scales = "free", ncol = 2, strip.position = "top")
+
+  create_pptx(p, width = 10, height = 4)
+  p
+}
+```
+
+```{r}
+#| label: fig-sankey
+#| cache: true
+#| cache.comments: false
+#| dependson: sankeyfunc
+#| fig-cap: "Path Baseline - 1 year follow-up"
+#| fig-subcap: !expr gdmt$label
+#| fig-height: 4
+#| fig-width: 10
+#| layout-ncol: 1
+#| layout-nrow: 3
+
+sankeyfunc(med = gdmt$var[1], medname = gdmt$label[1])
+sankeyfunc(med = gdmt$var[2], medname = gdmt$label[2])
+sankeyfunc(med = gdmt$var[3], medname = gdmt$label[3])
+```

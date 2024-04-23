@@ -25,30 +25,6 @@ rm(lmswedehf)
 gc()
 
 rsdata <- create_medvar(
-  atc = "^(C09A|C09B|C09C|C09D)", medname = "rasiarni",
-  cohortdata = rsdata,
-  meddata = lmsel,
-  id = "lopnr",
-  valsclass = "fac",
-  metatime = "-120-0"
-)
-rsdata <- create_medvar(
-  atc = "^(C07)", medname = "bbl",
-  cohortdata = rsdata,
-  meddata = lmsel,
-  id = "lopnr",
-  valsclass = "fac",
-  metatime = "-120-0"
-)
-rsdata <- create_medvar(
-  atc = "^(C03DA)", medname = "mra",
-  cohortdata = rsdata,
-  meddata = lmsel,
-  id = "lopnr",
-  valsclass = "fac",
-  metatime = "-120-0"
-)
-rsdata <- create_medvar(
   atc = "^(C03)", medname = "diuretic",
   cohortdata = rsdata,
   meddata = lmsel,

@@ -53,7 +53,7 @@ rsdata <- left_join(rsdata, crtdata, by = "lopnr") %>%
     diff_crt_shf = as.numeric(crtdtm - shf_indexdtm),
     crt = case_when(
       is.na(diff_crt_shf) ~ 0,
-      diff_crt_shf >= -365 & diff_crt_shf <= 0 ~ 1,
+      diff_crt_shf >= -365 & diff_crt_shf <= 30 ~ 1,
       TRUE ~ 0
     ),
     indexdtm = if_else(crt == 1, crtdtm, shf_indexdtm),
@@ -75,7 +75,7 @@ rsdata <- rsdata %>%
 
 flow <- flow %>%
   add_row(
-    Criteria = "Fullfills criteria for CRT, first CRT post in ICD/PM Registry and SwedeHF post within 1 year prior to CRT",
+    Criteria = "Fullfills criteria for CRT, first CRT post in ICD/PM Registry and SwedeHF post within 1 year prior to 30 days after CRT",
     Ncrt = nrow(rsdata %>% filter(crt == 1))
   )
 
@@ -118,15 +118,15 @@ rsdata <- rsdata %>%
   mutate(keep = case_when(
     crt == 1 ~ 1,
     is.na(diff_crt_shf) ~ 1,
-    diff_crt_shf < 365 ~ 0,
+    diff_crt_shf < 0 ~ 0,
     diff_crt_shf > 426 ~ 1,
-    TRUE ~ 0
+    TRUE ~ 1
   )) %>%
   filter(keep == 1) %>%
   select(-keep)
 flow <- flow %>%
   add_row(
-    Criteria = "Include control posts without prior CRT and with >= 1 year + 2 months follow-up without CRT (Per-protocol analyses)",
+    Criteria = "Include control posts without prior CRT",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )
@@ -141,7 +141,7 @@ rsdatacontrol <- rsdata %>%
 rsdatacrt <- rsdata %>%
   filter(crt == 1) %>%
   group_by(lopnr) %>%
-  arrange(desc(diff_crt_shf)) %>% # since negative time the swedehf reg closest crt
+  arrange(abs(diff_crt_shf)) %>%
   slice(1) %>%
   ungroup()
 

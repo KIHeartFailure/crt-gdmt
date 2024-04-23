@@ -132,14 +132,14 @@ contdig <- 0
 catdig <- 0
 
 medvarsbase <- c(
-  "sos_lm_bbl1", "targetdose_cat_bbl_1", "targetdose_bbl_1",
-  "sos_lm_rasiarni1", "targetdose_cat_rasiarni_1", "targetdose_rasiarni_1",
-  "sos_lm_mra1", "targetdose_cat_mra_1", "targetdose_mra_1"
+  "sos_lm_bbl1", "bbl_1",
+  "sos_lm_rasiarni1", "rasiarni_1",
+  "sos_lm_mra1", "mra_1"
 )
 medvarsfu <- c(
-  "sos_lm_bbl2", "targetdose_cat_bbl_2", "targetdose_bbl_2",
-  "sos_lm_rasiarni2", "targetdose_cat_rasiarni_2", "targetdose_rasiarni_2",
-  "sos_lm_mra2", "targetdose_cat_mra_2", "targetdose_mra_2"
+  "sos_lm_bbl2", "bbl_2",
+  "sos_lm_rasiarni2", "rasiarni_2",
+  "sos_lm_mra2", "mra_2"
 )
 
 tabbase <- lapply(medvarsbase,
@@ -147,21 +147,21 @@ tabbase <- lapply(medvarsbase,
   stratavar = "crt", catdig = catdig, contdig = contdig
 )
 tabbase <- bind_rows(tabbase) %>%
-  select(var, level, Control, CRT, p)
+  select(var, level, "No CRT", CRT, p)
 
 tabfu <- lapply(medvarsfu,
   FUN = medtabfunc, data = rsdata,
   stratavar = "crt", catdig = catdig, contdig = contdig
 )
 tabfu <- bind_rows(tabfu) %>%
-  select(Control, CRT, p)
+  select("No CRT", CRT, p)
 
 tabboth <- bind_cols(tabbase, tabfu) %>%
   mutate(
     var = case_when(
-      var == "sos_lm_bbl1" ~ "Treated with Beta-blocker",
-      var == "sos_lm_rasiarni1" ~ "Treated with ACEi/ARB/ARNi",
-      var == "sos_lm_mra1" ~ "Treated with MRA",
+      var == "sos_lm_bbl1" ~ "Target dose (%) Beta-blocker",
+      var == "sos_lm_rasiarni1" ~ "Target dose (%) ACEi/ARB/ARNi",
+      var == "sos_lm_mra1" ~ "Target dose (%) MRA",
       !is.na(var) ~ "Target dose (%)"
     ),
     var = if_else(!is.na(level) & !is.na(var),
@@ -179,7 +179,10 @@ make_one_xlsxsheet(tabboth, colnames = cn)
 cn <- sanitize_text(cn)
 
 tabboth <- tabboth %>%
-  mutate(var = sanitize_text(var))
+  mutate(
+    var = sanitize_text(var),
+    var = str_replace_all(var, fixed("$>$="), "$\\geq$")
+  )
 
 indent_rows <- tabboth %>%
   mutate(

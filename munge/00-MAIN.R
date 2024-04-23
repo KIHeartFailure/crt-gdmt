@@ -41,7 +41,8 @@ save(
     "metalm",
     "metavars",
     "outcommeta",
-    "gdmt"
+    "gdmt",
+    "checkcombdoses"
   )
 )
 

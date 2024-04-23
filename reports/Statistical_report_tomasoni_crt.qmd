@@ -67,37 +67,23 @@ figs <- officer::read_pptx(path = here::here("output/figs/figs.pptx"))
 
 ## Data sources
 
-The Swedish Heart Failure Registry (SwedeHF) is an ongoing nationwide quality registry started in 2000, 
-that includes in- and out-hospital patients with HF, regardless of EF and previous history of HF[@swedehf]. 
-Around 80 variables are recorded at 
-discharge from hospital or at the outpatient visit, i.e. index date, and 
-entered into an electronic database managed by the Uppsala Clinical Research 
-Center (Uppsala, Sweden). Up to April 2017 the only inclusion criterion was a 
-clinical diagnosis of HF, which was thereafter defined according to the ICD-10 
-codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. 
-In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. 
+The following registries were linked using the Swedish personal identity number (PIN)[@pin]: 
 
-SwedeHF was linked with national Swedish registries (SHFDB version 4.1.2) through the 
-Swedish personal identity number (PIN)[@pin]: 
-
-- The ICD/PM Registry
-- The National Patient Register (The National Board of Health and Welfare) for 
-additional comorbidities and the hospitalization outcomes
-- The National Prescribed Drug Register (The National Board of Health and Welfare) 
-for medications
-- The Cause of Death Register[@dors] (The National Board of Health and Welfare) for outcomes 
-death
+- The Swedish Heart Failure Registry (SwedeHF), an ongoing nationwide quality registry started in 2000, 
+that includes in- and out-hospital patients with HF, regardless of EF and previous history of HF[@swedehf]. Around 80 variables are recorded at 
+discharge from hospital or at the outpatient visit, i.e. index date, and entered into an electronic database managed by the Uppsala Clinical Research 
+Center (Uppsala, Sweden). Up to April 2017 the only inclusion criterion was a clinical diagnosis of HF, which was thereafter defined according to the ICD-10 
+codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. For this project SHFDB version 4.1.3 was used, see https://kiheartfailure.github.io/shfdb4/. SwedeHF provided information on planned follow-up and the controls. 
+- The ICD/PM Registry provided information on date of CRT.
+- The National Patient Register (The National Board of Health and Welfare) provided information on comorbidities and the hospitalization outcomes
+- The National Prescribed Drug Register (The National Board of Health and Welfare) provided information on the medications
+- The Cause of Death Register[@dors] (The National Board of Health and Welfare) provided information for outcomes death
 - Longitudinal integrated database for health insurance and labour market studies (LISA)[@lisa] 
-and the Register of the Total Population (Statistics Sweden) for socio-economic factors
-
-## Acknowledgments
-
-Please include "We thank all staff members at care units reporting into the SwedeHF registry for their contribution." 
-in the Acknowledgements of any resulting articles. 
+and the Register of the Total Population (Statistics Sweden) provided information on the socio-economic factors
 
 ## Ethics and Informed consent
 
-The study was approved by the Swedish Ethical Review Authority, dnr 2021-04326. 
+The study was approved by the Swedish Ethical Review Authority, dnr 2021-04326, add amendment dnr. 
 Individual consent was not required, but patients were informed of entry into SwedeHF and able to opt‐out.
 
 \newpage
@@ -112,9 +98,16 @@ default_kable(flow) %>%
   column_spec(1, width = "15cm")
 ```
 
-## Definitions
+First patient in: `r min(rsdata$indexdtm)` and last patient in: `r max(rsdata$indexdtm)`. 
 
-Information on data sources, definitions etc. are found https://kiheartfailure.github.io/shfdb4/.
+Note that a control can receive CRT during the 1 year follow-up and a CRT patient can be explanted (ITT). 
+
+### Limitation 
+
+Patients receiving a CRT can be in the process of being up-titrated (but still not showing up in the last prescription due to the lag). 
+Therefore a possible increase in GDMT use can be an effect of this and not an effect of the CRT. 
+
+## Definitions
 
 {{< include src/vars.qmd >}}
 
@@ -128,13 +121,17 @@ If multiple SwedeHF registrations exists, the registration closest to CRT (withi
 
 ### GDMT
 
+GDMT are: 
+
+- Beta-blocker
+- ACEi/ARB/ARNi
+- MRA
+
 GDMT at baseline are defined as a dispensed prescription in NPDR 4 months prior up until day before baseline. 
 
 GDMT at 1 year follow-up are defined as a dispensed prescription in NPDR 12 months $\pm$ 2 months after baseline. 
 
 The prescription closest to baseline and 1 year is chosen if multiple prescriptions exist. 
-
-PLEASE CHECK MY SUGGESTED DEFINITION BELOW:
 
 The difference between baseline and 1 year follow-up is defined as: 
 
@@ -144,6 +141,18 @@ The difference between baseline and 1 year follow-up is defined as:
 
 For the combined GDMT variable the sum of the 3 individual medications is calculated (No change: 0, Increase: 1, Decrease: -1) 
 and if the summarized variable is 0 = No change, >0: Increase, <0: Decrease. 
+
+For the models No change and Decrease where combined into one catgory forming a dichomonous variable Increase vs. No change/Decrease. 
+
+#### Target dose
+
+The dose taken by the patient was evaluated using the strength of the tablet prescribes x the number of pills the patients was prescribed to take each day. The latter is written in free text and an algorithm was derived to extract the dose prescribed. If there was no text or it was not possible to interpret the number of tablets / day was assumed to be the mean number of pills taken per day for the posts with non-missing values with the same ATC code. The % target dose was then calculated according to the defined target dose for each substance (see separate document). For the pills with a combination of substances the target dose was calculated for the MRA, Beta-blocker, ACEi/ARB part of the pill. 
+
+#### Limitations 
+
+1. The text extraction is sometimes a matter of interpretation. 
+2. For pills with combination substances the strength was not available. For many combination pills there was only one available dose on the market but for those where there was no information the target dose was set to 50%. The % of combination pills was however low (`r fn(checkcombdoses %>% count(othercomb) %>% mutate(p = n / sum(n) * 100) %>% filter(othercomb) %>% pull(p), 1)`%) except for ARNi (`r fn(checkcombdoses %>% count(arni) %>% mutate(p = n / sum(n) * 100) %>% filter(arni) %>% pull(p), 1)`%). For ARNi, packages containing packages containing 28 or 56 pills were assumed to be of the strength 49/51 together with packages containing 168 pills where the patient was prescribed > 2 pills/day. If the patient was prescribed > 4 pills / day the strength was assumed to be 24/26 mg. The rest was assumed to be strength 97 mg/103 mg. 
+3. The last prescription prior to baseline and closes to 1 year was selected, however, the last prescription can be old and the doctor can verbally have instructed the patient to take a different dose/stop medication.
 
 # Statistical analysis 
 
@@ -167,14 +176,15 @@ differences between groups with the chi-square test.
 Continuous variables are presented with median [first quartile-third quartile] and tested for 
 differences between groups with the Kruskal-Wallis test. 
 
-## GDMT
+## Assoction between CRT and increase in GDMT
 
-For the predictors model No change and decrease are combined. OK???? Or do you want to keep 3 levels? Should this only be for patients with CRT (looks like that from the project plan but perhaps also the controls should be included as a comparison)??? 
+The association between CRT compared to No CRT (controls) and increase in the individual GDMT as well as the combined GDMT was evaluated using logistic regression models. 
+Partly crude, partly adjusting for the respective baseline medication (for increase in the combined GDMT variable all 3 baseline medications were adjusted for) and partly adjusting for all variables indicated in @tbl-base together with the baseline medications. 
 
-The association between baseline characteristics and the respective change in GDMT together with the combined GDMT was evaluated using a multivariable logistic regression 
-including the variables shown in @fig-predictors. The variables were selected based on clinical relevance. 
+## Predictors of increase in GDMT
 
-If both CRT and control patients with interaction effect.... Note that this causes the estimates to be from different multivariable models.  
+The association between baseline characteristics and increase in the individual GDMT as well as the combined GDMT was evaluated using a multivariable logistic regression 
+including the variables shown in the forestplots. The variables were selected based on clinical relevance. The difference between CRT and No CRT was evaluated using and interaction effect (the estimates presented are therefore from different multivariable models).  
 
 ### Assumptions
 
@@ -208,17 +218,21 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 
 \clearpage
 
-## GDMT
+## Assoction between CRT and increase in GDMT
 
 {{< include src/medbase_tab.qmd >}}
 
-Ok with the below plot instead of those suggested in project plan?;
+{{< include src/sankey_figs.qmd >}}
 
 {{< include src/bar.qmd >}}
 
+{{< include src/med_logreg.qmd >}}
+
+\clearpage
+
 ## Predictors of increase in GDMT
 
-Either a table or a Forestplot?
+{{< include src/predictors.qmd >}}
 
 \clearpage
 

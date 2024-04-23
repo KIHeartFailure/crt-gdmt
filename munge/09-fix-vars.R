@@ -1,14 +1,15 @@
 rsdata <- rsdata %>%
   mutate(
-    crt = factor(crt, levels = 0:1, labels = c("Control", "CRT")),
+    crt = factor(crt, levels = 0:1, labels = c("No CRT", "CRT")),
     diff_crt_shf_cat = factor(
       case_when(
-        crt == "Control" ~ 0,
         diff_crt_shf <= -182 ~ 1,
-        diff_crt_shf <= 0 ~ 2
+        diff_crt_shf <= -91 ~ 2,
+        diff_crt_shf <= 0 ~ 3,
+        diff_crt_shf > 0 ~ 4
       ),
-      levels = 0:2,
-      labels = c("Control", "365-182", "183-0")
+      levels = 1:4,
+      labels = c("365-182 prior CRT", "181-91 prior CRT", "90-0 prior CRT", "1-30 after CRT")
     ),
     indexyear_cat = case_when(
       indexyear <= 2015 ~ "2009-2015",
@@ -31,35 +32,29 @@ rsdata <- rsdata %>%
         ">=8"
       )
     ),
-    sos_lm_mra1 = factor(if_else(is.na(targetdose_mra_1), 0, 1), levels = 0:1, labels = c("No", "Yes")),
-    sos_lm_bbl1 = factor(if_else(is.na(targetdose_bbl_1), 0, 1), levels = 0:1, labels = c("No", "Yes")),
-    sos_lm_rasiarni1 = factor(if_else(is.na(targetdose_rasiarni_1), 0, 1), levels = 0:1, labels = c("No", "Yes")),
-    sos_lm_mra2 = factor(if_else(is.na(targetdose_mra_2), 0, 1), levels = 0:1, labels = c("No", "Yes")),
-    sos_lm_bbl2 = factor(if_else(is.na(targetdose_bbl_2), 0, 1), levels = 0:1, labels = c("No", "Yes")),
-    sos_lm_rasiarni2 = factor(if_else(is.na(targetdose_rasiarni_2), 0, 1), levels = 0:1, labels = c("No", "Yes")),
     mradiff = case_when(
-      sos_lm_mra1 == "No" & sos_lm_mra2 == "No" ~ 0,
-      sos_lm_mra1 == "No" & sos_lm_mra2 == "Yes" ~ 1,
-      sos_lm_mra1 == "Yes" & sos_lm_mra2 == "No" ~ -1,
-      round(targetdose_mra_1) == round(targetdose_mra_2) ~ 0,
-      round(targetdose_mra_1) < round(targetdose_mra_2) ~ 1,
-      round(targetdose_mra_1) > round(targetdose_mra_2) ~ -1
+      sos_lm_mra1 == "Not treated" & sos_lm_mra2 == "Not treated" ~ 0,
+      sos_lm_mra1 == "Not treated" ~ 1,
+      sos_lm_mra2 == "Not treated" ~ -1,
+      round(mra_1) == round(mra_2) ~ 0,
+      round(mra_1) < round(mra_2) ~ 1,
+      round(mra_1) > round(mra_2) ~ -1
     ),
     bbldiff = case_when(
-      sos_lm_bbl1 == "No" & sos_lm_bbl2 == "No" ~ 0,
-      sos_lm_bbl1 == "No" & sos_lm_bbl2 == "Yes" ~ 1,
-      sos_lm_bbl1 == "Yes" & sos_lm_bbl2 == "No" ~ -1,
-      round(targetdose_bbl_1) == round(targetdose_bbl_2) ~ 0,
-      round(targetdose_bbl_1) < round(targetdose_bbl_2) ~ 1,
-      round(targetdose_bbl_1) > round(targetdose_bbl_2) ~ -1
+      sos_lm_bbl1 == "Not treated" & sos_lm_bbl2 == "Not treated" ~ 0,
+      sos_lm_bbl1 == "Not treated" ~ 1,
+      sos_lm_bbl2 == "Not treated" ~ -1,
+      round(bbl_1) == round(bbl_2) ~ 0,
+      round(bbl_1) < round(bbl_2) ~ 1,
+      round(bbl_1) > round(bbl_2) ~ -1
     ),
     rasiarnidiff = case_when(
-      sos_lm_rasiarni1 == "No" & sos_lm_rasiarni2 == "No" ~ 0,
-      sos_lm_rasiarni1 == "No" & sos_lm_rasiarni2 == "Yes" ~ 1,
-      sos_lm_rasiarni1 == "Yes" & sos_lm_rasiarni2 == "No" ~ -1,
-      round(targetdose_rasiarni_1) == round(targetdose_rasiarni_2) ~ 0,
-      round(targetdose_rasiarni_1) < round(targetdose_rasiarni_2) ~ 1,
-      round(targetdose_rasiarni_1) > round(targetdose_rasiarni_2) ~ -1
+      sos_lm_rasiarni1 == "Not treated" & sos_lm_rasiarni2 == "Not treated" ~ 0,
+      sos_lm_rasiarni1 == "Not treated" ~ 1,
+      sos_lm_rasiarni2 == "Not treated" ~ -1,
+      round(rasiarni_1) == round(rasiarni_2) ~ 0,
+      round(rasiarni_1) < round(rasiarni_2) ~ 1,
+      round(rasiarni_1) > round(rasiarni_2) ~ -1
     ),
     gdmtdiff = mradiff + bbldiff + rasiarnidiff,
     gdmtdiff_cat = factor(
@@ -77,6 +72,39 @@ rsdata <- rsdata %>%
     mradiff2 = fct_collapse(mradiff, "Decrease/No change" = c("Decrease", "No change")),
     bbldiff2 = fct_collapse(bbldiff, "Decrease/No change" = c("Decrease", "No change")),
     rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/No change" = c("Decrease", "No change"))
+    #
+    # # using categorical levels
+    # mradiff_alt = case_when(
+    #   as.numeric(sos_lm_mra1) == as.numeric(sos_lm_mra2) ~ 0,
+    #   as.numeric(sos_lm_mra1) < as.numeric(sos_lm_mra2) ~ 1,
+    #   as.numeric(sos_lm_mra1) > as.numeric(sos_lm_mra2) ~ -1,
+    # ),
+    # bbldiff_alt = case_when(
+    #   as.numeric(sos_lm_bbl1) == as.numeric(sos_lm_bbl2) ~ 0,
+    #   as.numeric(sos_lm_bbl1) < as.numeric(sos_lm_bbl2) ~ 1,
+    #   as.numeric(sos_lm_bbl1) > as.numeric(sos_lm_bbl2) ~ -1,
+    # ),
+    # rasiarnidiff_alt = case_when(
+    #   as.numeric(sos_lm_rasiarni1) == as.numeric(sos_lm_rasiarni2) ~ 0,
+    #   as.numeric(sos_lm_rasiarni1) < as.numeric(sos_lm_rasiarni2) ~ 1,
+    #   as.numeric(sos_lm_rasiarni1) > as.numeric(sos_lm_rasiarni2) ~ -1,
+    # ),
+    # gdmtdiff_alt = mradiff_alt + bbldiff_alt + rasiarnidiff_alt,
+    # gdmtdiff_cat_alt = factor(
+    #   case_when(
+    #     gdmtdiff < 0 ~ -1,
+    #     gdmtdiff == 0 ~ 0,
+    #     gdmtdiff > 0 ~ 1
+    #   ),
+    #   levels = -1:1, labels = c("Decrease", "No change", "Increase")
+    # ),
+    # mradiff_alt = factor(mradiff_alt, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
+    # bbldiff_alt = factor(bbldiff_alt, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
+    # rasiarnidiff_alt = factor(rasiarnidiff_alt, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
+    # gdmtdiff_cat2_alt = fct_collapse(gdmtdiff_cat_alt, "Decrease/No change" = c("Decrease", "No change")),
+    # mradiff2_alt = fct_collapse(mradiff_alt, "Decrease/No change" = c("Decrease", "No change")),
+    # bbldiff2_alt = fct_collapse(bbldiff_alt, "Decrease/No change" = c("Decrease", "No change")),
+    # rasiarnidiff2_alt = fct_collapse(rasiarnidiff_alt, "Decrease/No change" = c("Decrease", "No change"))
   )
 
 # income

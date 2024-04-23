@@ -1,0 +1,74 @@
+```{r}
+#| label: tbl-logregmed
+#| cache: true
+#| cache.comments: false
+#| tbl-cap: "Association between CRT and increase in GDMT"
+
+medfunc <- function(medvar, medvaradj) {
+  modvarstmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1")
+
+  moduni <- summary(glm(formula(paste0(medvar, " == 'Increase' ~ crt")),
+    family = binomial(link = "logit"), data = rsdata
+  ))
+
+  modbi <- summary(glm(formula(paste0(medvar, " == 'Increase' ~ crt + ", paste(medvaradj, collapse = " + "))),
+    family = binomial(link = "logit"), data = rsdata
+  ))
+
+  modadj <- with(imprsdata, glm(formula(paste0(medvar, " == 'Increase' ~ crt + ", paste(modvarstmp, collapse = " + "))),
+    family = binomial(link = "logit")
+  ))
+  modadj <- summary(pool(modadj))
+
+
+  out <- tibble(
+    Med = medvar,
+    uni = paste0(
+      fn(exp(moduni$coefficients[2, "Estimate"]), 2), " (",
+      fn(exp(moduni$coefficients[2, "Estimate"] - global_z05 * moduni$coefficients[2, "Std. Error"]), 2), "-",
+      fn(exp(moduni$coefficients[2, "Estimate"] + global_z05 * moduni$coefficients[2, "Std. Error"]), 2), "), ",
+      fn(moduni$coefficients[2, "Pr(>|z|)"], dig = 3, p = T)
+    ),
+    bi = paste0(
+      fn(exp(modbi$coefficients[2, "Estimate"]), 2), " (",
+      fn(exp(modbi$coefficients[2, "Estimate"] - global_z05 * modbi$coefficients[2, "Std. Error"]), 2), "-",
+      fn(exp(modbi$coefficients[2, "Estimate"] + global_z05 * modbi$coefficients[2, "Std. Error"]), 2), "), ",
+      fn(modbi$coefficients[2, "Pr(>|z|)"], dig = 3, p = T)
+    ),
+    mult = paste0(
+      fn(exp(modadj$estimate[2]), 2), " (",
+      fn(exp(modadj$estimate[2] - global_z05 * modadj$std.error[2]), 2), "-",
+      fn(exp(modadj$estimate[2] + global_z05 * modadj$std.error[2]), 2), "), ",
+      fn(modadj$p.value[2], dig = 3, p = T)
+    )
+  )
+  return(out)
+}
+
+comb <- medfunc(medvar = "gdmtdiff_cat2", medvaradj = c("sos_lm_bbl1", "sos_lm_rasiarni1", "sos_lm_mra1"))
+bbl <- medfunc(medvar = "bbldiff2", medvaradj = "sos_lm_bbl1")
+rasiarni <- medfunc(medvar = "rasiarnidiff2", medvaradj = "sos_lm_rasiarni1")
+mra <- medfunc(medvar = "mradiff2", medvaradj = "sos_lm_mra1")
+
+tabgdmt <- bind_rows(comb, bbl, rasiarni, mra) %>%
+  mutate(
+    Med = str_remove_all(Med, "diff_cat2|diff2"),
+    Med = factor(Med,
+      levels = c("gdmt", "bbl", "rasiarni", "mra"),
+      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA")
+    )
+  )
+
+cn <- c("Medication", "Crude", "Adjusted baseline medication", "Adjusted")
+
+# excel
+make_one_xlsxsheet(tabgdmt, colnames = cn)
+
+cn <- sanitize_text(cn)
+
+default_kable(tabgdmt,
+  escape = FALSE,
+  col.names = cn
+) %>%
+  add_header_above(c(" " = 1, "Odds Ratio (95% CI), p-value" = 3))
+```
