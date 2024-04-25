@@ -240,6 +240,7 @@ koll <- lmgdmt4 %>%
   mutate(strength = round(strength)) %>%
   count(strength) %>%
   mutate(p = n / sum(n) * 100)
+
 # targetdoses
 lmgdmt4 <- lmgdmt4 %>%
   mutate(
@@ -309,11 +310,28 @@ lmgdmt6 <- lmgdmt5 %>%
   group_by(lopnr, med, time) %>%
   arrange(tmpdiff) %>%
   slice(1) %>%
-  ungroup() %>%
-  select(lopnr, time, med, targetdose)
+  ungroup()
 
-lmgdmt7 <- lmgdmt6 %>%
-  pivot_wider(names_from = c("med", "time"), values_from = c("targetdose"))
+# add info on arni
+
+lmarni <- lmgdmt4 %>%
+  filter(str_detect(ATC, "^C09DX04")) %>%
+  select(lopnr, EDATUM) %>%
+  mutate(arni = 1) %>%
+  distinct()
+
+lmgdmt7 <- left_join(
+  lmgdmt6,
+  lmarni,
+  by = c("lopnr", "EDATUM")
+) %>%
+  select(lopnr, time, med, targetdose, arni)
+
+lmgdmt8 <- lmgdmt7 %>%
+  pivot_wider(names_from = c("med", "time"), values_from = c("targetdose", "arni")) %>%
+  select(-arni_bbl_1, -arni_bbl_2, -arni_mra_2, -arni_mra_1)
+
+colnames(lmgdmt8) <- str_remove_all(colnames(lmgdmt8), "targetdose_")
 
 dosefunc <- function(med) {
   med <- factor(
@@ -368,7 +386,7 @@ dosefunc2 <- function(med) {
   )
 }
 
-rsdata <- left_join(rsdata, lmgdmt7, by = "lopnr")
+rsdata <- left_join(rsdata, lmgdmt8, by = "lopnr")
 
 rsdata <- rsdata %>%
   mutate(

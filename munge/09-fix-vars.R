@@ -52,6 +52,8 @@ rsdata <- rsdata %>%
       sos_lm_rasiarni1 == "Not treated" & sos_lm_rasiarni2 == "Not treated" ~ 0,
       sos_lm_rasiarni1 == "Not treated" ~ 1,
       sos_lm_rasiarni2 == "Not treated" ~ -1,
+      is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2) ~ 1,
+      !is.na(arni_rasiarni_1) & is.na(arni_rasiarni_2) ~ -1,
       round(rasiarni_1) == round(rasiarni_2) ~ 0,
       round(rasiarni_1) < round(rasiarni_2) ~ 1,
       round(rasiarni_1) > round(rasiarni_2) ~ -1
@@ -65,13 +67,37 @@ rsdata <- rsdata %>%
       ),
       levels = -1:1, labels = c("Decrease", "No change", "Increase")
     ),
+
+    # ex arni
+    rasiarnidiff_exarni = case_when(
+      !is.na(arni_rasiarni_1) | !is.na(arni_rasiarni_2) ~ NA_real_,
+      sos_lm_rasiarni1 == "Not treated" & sos_lm_rasiarni2 == "Not treated" ~ 0,
+      sos_lm_rasiarni1 == "Not treated" ~ 1,
+      sos_lm_rasiarni2 == "Not treated" ~ -1,
+      round(rasiarni_1) == round(rasiarni_2) ~ 0,
+      round(rasiarni_1) < round(rasiarni_2) ~ 1,
+      round(rasiarni_1) > round(rasiarni_2) ~ -1
+    ),
+    gdmtdiff_exarni = mradiff + bbldiff + rasiarnidiff_exarni,
+    gdmtdiff_cat_exarni = factor(
+      case_when(
+        is.na(gdmtdiff_exarni) ~ NA_real_,
+        gdmtdiff_exarni < 0 ~ -1,
+        gdmtdiff_exarni == 0 ~ 0,
+        gdmtdiff_exarni > 0 ~ 1
+      ),
+      levels = -1:1, labels = c("Decrease", "No change", "Increase")
+    ),
     mradiff = factor(mradiff, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
     bbldiff = factor(bbldiff, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
     rasiarnidiff = factor(rasiarnidiff, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
     gdmtdiff_cat2 = fct_collapse(gdmtdiff_cat, "Decrease/No change" = c("Decrease", "No change")),
     mradiff2 = fct_collapse(mradiff, "Decrease/No change" = c("Decrease", "No change")),
     bbldiff2 = fct_collapse(bbldiff, "Decrease/No change" = c("Decrease", "No change")),
-    rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/No change" = c("Decrease", "No change"))
+    rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/No change" = c("Decrease", "No change")),
+    rasiarnidiff_exarni = factor(rasiarnidiff_exarni, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
+    gdmtdiff_cat2_exarni = fct_collapse(gdmtdiff_cat_exarni, "Decrease/No change" = c("Decrease", "No change")),
+    rasiarnidiff2_exarni = fct_collapse(rasiarnidiff_exarni, "Decrease/No change" = c("Decrease", "No change"))
     #
     # # using categorical levels
     # mradiff_alt = case_when(

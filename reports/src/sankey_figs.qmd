@@ -15,11 +15,16 @@ sankeyfunc <- function(med, medname) {
       !!sym(paste0("sos_lm_", med, "2")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "2")), ">=", "\u2265"))
     )
 
+  if (med == "mra") {
+    cols <- global_cols[c(1, 3, 4, 5)]
+  } else {
+    cols <- global_cols
+  }
   p <- ggplot(
     data = sankeydata,
     aes(axis1 = !!sym(paste0("sos_lm_", med, "1")), axis2 = !!sym(paste0("sos_lm_", med, "2")), y = n)
   ) +
-    scale_fill_manual(values = global_cols, na.translate = F) +
+    scale_fill_manual(values = cols, na.translate = F) +
     geom_alluvium(aes(fill = !!sym(paste0("sos_lm_", med, "1")))) +
     geom_stratum() +
     geom_text(

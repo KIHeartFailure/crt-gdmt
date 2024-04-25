@@ -48,14 +48,15 @@ medfunc <- function(medvar, medvaradj) {
 comb <- medfunc(medvar = "gdmtdiff_cat2", medvaradj = c("sos_lm_bbl1", "sos_lm_rasiarni1", "sos_lm_mra1"))
 bbl <- medfunc(medvar = "bbldiff2", medvaradj = "sos_lm_bbl1")
 rasiarni <- medfunc(medvar = "rasiarnidiff2", medvaradj = "sos_lm_rasiarni1")
+rasiarni_exarni <- medfunc(medvar = "rasiarnidiff2_exarni", medvaradj = "sos_lm_rasiarni1")
 mra <- medfunc(medvar = "mradiff2", medvaradj = "sos_lm_mra1")
 
-tabgdmt <- bind_rows(comb, bbl, rasiarni, mra) %>%
+tabgdmt <- bind_rows(comb, bbl, rasiarni, rasiarni_exarni, mra) %>%
   mutate(
     Med = str_remove_all(Med, "diff_cat2|diff2"),
     Med = factor(Med,
-      levels = c("gdmt", "bbl", "rasiarni", "mra"),
-      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA")
+      levels = c("gdmt", "bbl", "rasiarni", "rasiarni_exarni", "mra"),
+      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA")
     )
   )
 
