@@ -1,4 +1,4 @@
-load(here(shfdbpath, "data", datadate, "20221012/lmswedehf.RData"))
+load(here(shfdbpath, "data", datadate, "/lmswedehf.RData"))
 
 # Select ATC codes --------------------------------------------------------
 

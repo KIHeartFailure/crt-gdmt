@@ -73,7 +73,7 @@ The following registries were linked using the Swedish personal identity number 
 that includes in- and out-hospital patients with HF, regardless of EF and previous history of HF[@swedehf]. Around 80 variables are recorded at 
 discharge from hospital or at the outpatient visit, i.e. index date, and entered into an electronic database managed by the Uppsala Clinical Research 
 Center (Uppsala, Sweden). Up to April 2017 the only inclusion criterion was a clinical diagnosis of HF, which was thereafter defined according to the ICD-10 
-codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. For this project SHFDB version 4.1.2 was used, see https://kiheartfailure.github.io/shfdb4/. SwedeHF provided information on planned follow-up and the controls. 
+codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. For this project SHFDB version 4.2.0 was used, see https://kiheartfailure.github.io/shfdb4/. SwedeHF provided information on planned follow-up and the controls. 
 - The ICD/PM Registry provided information on date of CRT.
 - The National Patient Register (The National Board of Health and Welfare) provided information on comorbidities and the hospitalization outcomes
 - The National Prescribed Drug Register (The National Board of Health and Welfare) provided information on the medications

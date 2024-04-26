@@ -15,7 +15,11 @@ flow <- flow %>%
     N = NA
   )
 
-rsdata <- rsdata412 %>%
+rsdata <- rsdata420 %>%
+  select(
+    lopnr, shf_indexdtm, shf_followuphfunit, shf_followuplocation_cat, shf_sex, shf_age, shf_age_cat, sos_durationhf, shf_ef_cat, shf_qrs, shf_lbbb, shf_bpsys,
+    shf_bpdia, shf_map, shf_map_cat, censdtm
+  ) %>%
   filter(!is.na(shf_ef_cat))
 flow <- flow %>%
   add_row(
@@ -90,6 +94,15 @@ rsdata <- rsdata %>%
 flow <- flow %>%
   add_row(
     Criteria = "Include posts >= 2009-01-01",
+    Ncrt = nrow(rsdata %>% filter(crt == 1)),
+    Ncontrol = nrow(rsdata %>% filter(crt == 0))
+  )
+
+rsdata <- rsdata %>%
+  filter(indexdtm <= ymd("2022-08-31"))
+flow <- flow %>%
+  add_row(
+    Criteria = "Include posts >= 2022-08-31 (have data in ICD/PM Registry)",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )

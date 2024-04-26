@@ -14,7 +14,6 @@ tabvars <- c(
   "sos_prevhfh1yr",
   "shf_followuphfunit",
   "shf_followuplocation_cat",
-  
   "shf_bpsys",
   "shf_bpsys_cat",
   "shf_bpdia",
@@ -73,12 +72,11 @@ tabvars_not_in_mod <- c(
   # demo
   "shf_age",
   "sos_durationhf",
-
   "shf_bpsys",
   "shf_bpdia",
   "shf_map",
   "shf_map_cat",
-  
+
   # treatments
   "sos_lm_sglt2",
   "sos_lm_insulin",

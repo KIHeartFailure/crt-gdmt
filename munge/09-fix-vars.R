@@ -172,7 +172,4 @@ rsdata <- left_join(
   select(-`33%`, -`66%`)
 
 rsdata <- rsdata %>%
-  mutate(across(where(is.character), as.factor)) %>%
-  mutate(
-    sos_deathcause = as.character(sos_deathcause)
-  )
+  mutate(across(where(is.character), as.factor))

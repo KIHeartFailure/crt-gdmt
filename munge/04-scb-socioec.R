@@ -42,7 +42,7 @@ lisa <- lisa %>%
       Sun2000niva %in% c(3, 4) ~ "Secondary school",
       Sun2000niva %in% c(5, 6, 7) ~ "University"
     ),
-    scb_dispincome = coalesce(DispInk04, DispInk)
+    scb_dispincome = coalesce(DispInk04_INKLGP, DispInk04, DispInk)
   ) %>%
   select(LopNr, year, starts_with("scb_"))
 

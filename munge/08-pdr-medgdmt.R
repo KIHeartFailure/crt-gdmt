@@ -1,4 +1,4 @@
-lmgdmt <- haven::read_sas(here::here("data/raw-data/lmgdmtdose.sas7bdat"))
+lmgdmt <- haven::read_sas(here::here("data/raw-data/lmgdmtdose_420.sas7bdat"))
 
 lmgdmt <- lmgdmt %>%
   filter(
@@ -7,7 +7,7 @@ lmgdmt <- lmgdmt %>%
   ) %>%
   select(-atc3, -atc4, -atc5) %>%
   arrange(lopnr, EDATUM, ATC) %>%
-  select(-OTYP, -contains("SPKOD"), -VERKS, -AR)
+  select(-OTYP, -contains("SPKOD"), -VERKS, -ar)
 
 lmgdmt <- left_join(
   rsdata %>%
