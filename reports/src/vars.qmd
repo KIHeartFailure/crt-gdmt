@@ -8,7 +8,8 @@ vars <- tibble(var = c("bbl", "rasiarni", "mra", tabvars)) %>%
   mutate(
     order = 1:n(),
     # if recoding or categorizing will still get org label
-    var_tmp = str_replace_all(var, "(_cat2|_cat)", "")
+    var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
+    var_tmp = str_replace_all(var_tmp, "(abs)", "")
   ) %>%
   group_by(var_tmp) %>%
   slice(1) %>%

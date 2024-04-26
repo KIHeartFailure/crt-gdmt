@@ -155,6 +155,7 @@ tab <- tab %>%
   mutate(
     # if recoding or categorizing will still get org label
     var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
+    var_tmp = str_replace_all(var_tmp, "(abs)", ""),
     # if shf/sos combination  will still get org label
     var_tmp = str_replace_all(var_tmp, "shf_sos_com_", "sos_com_")
   )
@@ -176,8 +177,8 @@ tab <- left_join(tab,
     ),
     # small fixes
     Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-    `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
-    pmis = if_else(var == "diff_crt_shf_cat", "0", pmis)
+    `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
+    pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat"), "0", pmis)
   )
 
 # footnotes

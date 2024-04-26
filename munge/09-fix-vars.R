@@ -5,18 +5,29 @@ rsdata <- rsdata %>%
       case_when(
         diff_crt_shf <= -182 ~ 1,
         diff_crt_shf <= -91 ~ 2,
-        diff_crt_shf <= 0 ~ 3,
-        diff_crt_shf > 0 ~ 4
+        diff_crt_shf <= -31 ~ 3,
+        diff_crt_shf <= 0 ~ 4,
+        diff_crt_shf > 0 ~ 5
       ),
-      levels = 1:4,
-      labels = c("365-182 prior CRT", "181-91 prior CRT", "90-0 prior CRT", "1-30 after CRT")
+      levels = 1:5,
+      labels = c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT")
     ),
+    absdiff_crt_shf = if_else(crt == "CRT", abs(diff_crt_shf), NA_real_),
     indexyear_cat = case_when(
       indexyear <= 2015 ~ "2009-2015",
       indexyear <= 2018 ~ "2016-2018",
       indexyear <= 2021 ~ "2019-2021"
     ),
     sos_prevhfh1yr = factor(if_else(sos_timeprevhosphf >= 365 & !is.na(sos_timeprevhosphf), 1, 0), levels = 0:1, labels = c("No", "Yes")),
+    shf_bpsys_cat = factor(
+      case_when(
+        is.na(shf_bpsys) ~ NA_real_,
+        shf_bpsys < 140 ~ 1,
+        shf_bpsys >= 140 ~ 2
+      ),
+      levels = 1:2,
+      labels = c("<140", ">=140")
+    ),
     sos_com_charlsonci_cat = factor(
       case_when(
         sos_com_charlsonci <= 1 ~ 1,

@@ -2,6 +2,7 @@
 
 tabvars <- c(
   # demo
+  "absdiff_crt_shf",
   "diff_crt_shf_cat",
   "indexyear_cat",
   "shf_sex",
@@ -13,26 +14,26 @@ tabvars <- c(
   "sos_prevhfh1yr",
   "shf_followuphfunit",
   "shf_followuplocation_cat",
-
+  
+  "shf_bpsys",
+  "shf_bpsys_cat",
+  "shf_bpdia",
+  "shf_map",
+  "shf_map_cat",
   # treatments
   # "sos_lm_rasiarni",
   # "sos_lm_bbl",
   # "sos_lm_mra",
   "sos_lm_sglt2",
-  # "sos_lm_sglt2_empa_dapa",
   "sos_lm_diuretic",
-  # "sos_lm_loopdiuretic",
-  # "sos_lm_furosemide",
   "sos_lm_ccb",
   "sos_lm_antiplatelet",
   "sos_lm_anticoagulantia",
-  # "sos_lm_oralanticoagulantia",
   "sos_lm_insulin",
   "sos_lm_oralantidiabetic",
   "sos_lm_lipidlowering",
   "sos_lm_digoxin",
   "sos_lm_nitrate",
-  # "sos_lm_ratecontrol",
   "sos_lm_antiarrhythmic",
   "sos_com_icd",
   "sos_com_pm",
@@ -73,6 +74,11 @@ tabvars_not_in_mod <- c(
   "shf_age",
   "sos_durationhf",
 
+  "shf_bpsys",
+  "shf_bpdia",
+  "shf_map",
+  "shf_map_cat",
+  
   # treatments
   "sos_lm_sglt2",
   "sos_lm_insulin",

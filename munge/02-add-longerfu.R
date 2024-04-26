@@ -47,7 +47,10 @@ dors <- dors %>%
 
 rsdata412 <- left_join(
   rsdata412 %>%
-    select(lopnr, shf_indexdtm, shf_followuphfunit, shf_followuplocation_cat, shf_sex, shf_age, shf_age_cat, sos_durationhf, shf_ef_cat, shf_qrs, shf_lbbb, tmp_migrationdtm),
+    select(
+      lopnr, shf_indexdtm, shf_followuphfunit, shf_followuplocation_cat, shf_sex, shf_age, shf_age_cat, sos_durationhf, shf_ef_cat, shf_qrs, shf_lbbb, shf_bpsys,
+      shf_bpdia, shf_map, shf_map_cat, tmp_migrationdtm
+    ),
   dors,
   by = "lopnr"
 ) %>%
