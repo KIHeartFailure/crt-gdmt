@@ -4,7 +4,7 @@
 #| cache.comments: false
 #| tbl-cap: "Variable definitions and data sources"
 
-vars <- tibble(var = c("bbl", "rasiarni", "mra", tabvars)) %>%
+vars <- tibble(var = c("bbl", "rasiarni", "mra", "loop", tabvars)) %>%
   mutate(
     order = 1:n(),
     # if recoding or categorizing will still get org label
@@ -69,7 +69,7 @@ vars <- vars %>%
     data1 = if_else(str_detect(var, "^shf_") & !var %in% c("shf_age", "shf_sex"), "SwedeHF", NA),
     data2 = case_when(
       str_detect(var, "sos_com_|hosp") & !is.na(Code) ~ paste0("NPR: ", Code),
-      str_detect(var, "sos_lm|bbl|rasiarni|mra") ~ paste0("NPDR: ", Code),
+      str_detect(var, "sos_lm|bbl|rasiarni|mra|loop") ~ paste0("NPDR: ", Code),
       str_detect(var, "sos_") & is.na(Code) ~ "NPR"
     ),
     data3 = if_else(str_detect(var, "scb_famtype|scb_education|scb_dispincome"), "LISA", NA),
@@ -79,7 +79,7 @@ vars <- vars %>%
     footnote_marker_alphabet(1, format = "latex"), ""
     ),
     footnote2 = if_else(Variable == "Charlson Comorbidity Index", footnote_marker_alphabet(2, format = "latex"), ""),
-    footnote3 = if_else(str_detect(var, "sos_lm|bbl|rasiarni|mra"), footnote_marker_alphabet(3, format = "latex"), "")
+    footnote3 = if_else(str_detect(var, "sos_lm|bbl|rasiarni|mra|loop"), footnote_marker_alphabet(3, format = "latex"), "")
   ) %>%
   unite(datasource, starts_with("data"), sep = "; ", na.rm = TRUE) %>%
   # mutate(

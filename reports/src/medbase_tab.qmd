@@ -3,7 +3,7 @@
 #| cache: true
 #| cache.comments: false
 
-medtabfunc <- function(x, data, stratavar, catdig, contdig) {
+medtabfunc_inner <- function(x, data, stratavar, catdig, contdig) {
   tmp <- data %>%
     filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
 
@@ -119,14 +119,6 @@ medtabfunc <- function(x, data, stratavar, catdig, contdig) {
     stop("Unknown class in baseline table")
   }
 }
-```
-
-```{r}
-#| label: tbl-med
-#| cache: true
-#| cache.comments: false
-#| dependson: medtabfunc
-#| tbl-cap: "Use of GDMT"
 
 contdig <- 0
 catdig <- 0
@@ -134,76 +126,113 @@ catdig <- 0
 medvarsbase <- c(
   "sos_lm_bbl1", "bbl_1",
   "sos_lm_rasiarni1", "rasiarni_1",
-  "sos_lm_mra1", "mra_1"
+  "sos_lm_mra1", "mra_1",
+  "sos_lm_loop1", "loop_1"
 )
 medvarsfu <- c(
   "sos_lm_bbl2", "bbl_2",
   "sos_lm_rasiarni2", "rasiarni_2",
-  "sos_lm_mra2", "mra_2"
+  "sos_lm_mra2", "mra_2",
+  "sos_lm_loop2", "loop_2"
 )
 
-tabbase <- lapply(medvarsbase,
-  FUN = medtabfunc, data = rsdata,
-  stratavar = "crt", catdig = catdig, contdig = contdig
-)
-tabbase <- bind_rows(tabbase) %>%
-  select(var, level, "No CRT", CRT, p)
-
-tabfu <- lapply(medvarsfu,
-  FUN = medtabfunc, data = rsdata,
-  stratavar = "crt", catdig = catdig, contdig = contdig
-)
-tabfu <- bind_rows(tabfu) %>%
-  select("No CRT", CRT, p)
-
-tabboth <- bind_cols(tabbase, tabfu) %>%
-  mutate(
-    var = case_when(
-      var == "sos_lm_bbl1" ~ "Target dose (%) Beta-blocker",
-      var == "sos_lm_rasiarni1" ~ "Target dose (%) ACEi/ARB/ARNi",
-      var == "sos_lm_mra1" ~ "Target dose (%) MRA",
-      !is.na(var) ~ "Target dose (%)"
-    ),
-    var = if_else(!is.na(level) & !is.na(var),
-      paste0(var, " ", level),
-      coalesce(var, paste0("  ", level))
-    )
-  ) %>%
-  select(-level)
-
-cn <- c("Variable", rep(c(levels(rsdata %>% pull(crt)), "p-value"), 2))
-
-# excel
-make_one_xlsxsheet(tabboth, colnames = cn)
-
-cn <- sanitize_text(cn)
-
-tabboth <- tabboth %>%
-  mutate(
-    var = sanitize_text(var),
-    var = str_replace_all(var, fixed("$>$="), "$\\geq$")
+medtabfunc <- function(data) {
+  tabbase <- lapply(medvarsbase,
+    FUN = medtabfunc_inner, data = data,
+    stratavar = "crt", catdig = catdig, contdig = contdig
   )
+  tabbase <- bind_rows(tabbase) %>%
+    select(var, level, "No CRT", CRT, p)
 
-indent_rows <- tabboth %>%
-  mutate(
-    indent_rows = str_detect(var, "  "),
-    rows = row_number()
-  ) %>%
-  filter(indent_rows) %>%
-  pull(rows)
+  tabfu <- lapply(medvarsfu,
+    FUN = medtabfunc_inner, data = data,
+    stratavar = "crt", catdig = catdig, contdig = contdig
+  )
+  tabfu <- bind_rows(tabfu) %>%
+    select("No CRT", CRT, p)
 
-default_kable(tabboth,
-  escape = FALSE,
-  col.names = cn
-) %>%
-  add_indent(indent_rows) %>%
-  footnote(
-    footnote_order = c("general", "symbol", "alphabet"),
-    general_title = "",
-    general = c(
-      "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
-    ),
-    threeparttable = T
+  tabboth <- bind_cols(tabbase, tabfu) %>%
+    mutate(
+      var = case_when(
+        var == "sos_lm_bbl1" ~ " Beta-blocker target dose (%)",
+        var == "sos_lm_rasiarni1" ~ "ACEi/ARB/ARNi target dose (%)",
+        var == "sos_lm_mra1" ~ "MRA target dose (%)",
+        var == "sos_lm_loop1" ~ "Loop diuretic Furosemide equivalent (mg)",
+        var == "loop_1" ~ "  Median [q1-q3]",
+        !is.na(var) ~ "  Median [q1-q3]"
+      ),
+      var = if_else(!is.na(level) & !is.na(var),
+        paste0(var, " ", level),
+        coalesce(var, paste0("  ", level))
+      )
+    ) %>%
+    select(-level)
+
+  cn <- c("Variable", rep(c(levels(rsdata %>% pull(crt)), "p-value"), 2))
+
+  # excel
+  make_one_xlsxsheet(tabboth, colnames = cn)
+
+  cn <- sanitize_text(cn)
+
+  tabboth <- tabboth %>%
+    mutate(
+      var = sanitize_text(var),
+      var = str_replace_all(var, fixed("$>$="), "$\\geq$"),
+      var = str_replace_all(var, fixed("$<$="), "$\\leq$")
+    )
+
+  indent_rows <- tabboth %>%
+    mutate(
+      indent_rows = str_detect(var, "  "),
+      rows = row_number()
+    ) %>%
+    filter(indent_rows) %>%
+    pull(rows)
+
+  default_kable(tabboth,
+    escape = FALSE,
+    col.names = cn
   ) %>%
-  add_header_above(c(" " = 1, "Baseline" = 3, "1 year follow-up" = 3))
+    add_indent(indent_rows) %>%
+    footnote(
+      footnote_order = c("general", "symbol", "alphabet"),
+      general_title = "",
+      general = c(
+        "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
+      ),
+      threeparttable = T
+    ) %>%
+    add_header_above(c(" " = 1, "Baseline" = 3, "1 year follow-up" = 3))
+}
+```
+
+```{r}
+#| label: tbl-med
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT & loop diuretic"
+
+medtabfunc(data = rsdata)
+```
+
+```{r}
+#| label: tbl-med-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT & loop diuretic - systolic blood pressure < 110 (mmHg)"
+
+medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110"))
+```
+
+```{r}
+#| label: tbl-med-normobp
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT & loop diuretic - systolic blood pressure >= 110 (mmHg)"
+
+medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110"))
 ```

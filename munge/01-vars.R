@@ -14,17 +14,25 @@ tabvars <- c(
   "sos_prevhfh1yr",
   "shf_followuphfunit",
   "shf_followuplocation_cat",
+  "shf_nyha",
+  "shf_nyha_cat",
   "shf_bpsys",
   "shf_bpsys_cat",
   "shf_bpdia",
   "shf_map",
   "shf_map_cat",
+  "shf_heartrate",
+  "shf_heartrate_cat",
+  "shf_gfrckdepi",
+  "shf_gfrckdepi_cat",
+  "shf_ntprobnp",
+  "shf_ntprobnp_cat",
   # treatments
   # "sos_lm_rasiarni",
   # "sos_lm_bbl",
   # "sos_lm_mra",
   "sos_lm_sglt2",
-  "sos_lm_diuretic",
+  # "sos_lm_diuretic",
   "sos_lm_ccb",
   "sos_lm_antiplatelet",
   "sos_lm_anticoagulantia",
@@ -39,7 +47,7 @@ tabvars <- c(
 
   # comorbs
   "sos_com_diabetes",
-  "sos_com_renal",
+  # "sos_com_renal",
   "sos_com_af",
   "sos_com_ihd",
   "sos_com_hypertension",
@@ -54,7 +62,7 @@ tabvars <- c(
   "sos_com_dementia",
   "sos_com_bleed",
   "sos_com_muscoloskeletal3y",
-  "sos_com_alcohol",
+  # "sos_com_alcohol",
   "sos_com_charlsonci",
   "sos_com_charlsonci_cat",
 
@@ -69,13 +77,18 @@ tabvars <- c(
 
 tabvars_not_in_mod <- c(
   "diff_crt_shf_cat",
+  "absdiff_crt_shf",
   # demo
   "shf_age",
   "sos_durationhf",
+  "shf_nyha",
   "shf_bpsys",
   "shf_bpdia",
   "shf_map",
   "shf_map_cat",
+  "shf_heartrate",
+  "shf_gfrckdepi",
+  "shf_ntprobnp",
 
   # treatments
   "sos_lm_sglt2",
@@ -104,8 +117,8 @@ metavars <- bind_rows(
       "rasiarni",
       "bbl",
       "mra",
+      "loop",
       "sos_lm_sglt2",
-      "sos_lm_diuretic",
       "sos_lm_ccb",
       "sos_lm_antiplatelet",
       "sos_lm_anticoagulantia",
@@ -125,8 +138,8 @@ metavars <- bind_rows(
       "ACEi/ARB/ARNi",
       "Beta-blocker",
       "MRA",
+      "Loop diuretic",
       "SGLT2i",
-      "Diuretic",
       "Calcium channel blockers",
       "Antiplatelet",
       "Anticoagulant",
@@ -144,15 +157,17 @@ metavars <- bind_rows(
 )
 
 gdmt <- tibble(
-  var = c("bbl", "rasiarni", "mra"),
+  var = c("bbl", "rasiarni", "mra", "loop"),
   label = c(
     "Beta-blocker",
     "ACEi/ARB/ARNi",
-    "MRA"
+    "MRA",
+    "Loop diuretic"
   ),
   ATC = c(
     "C07",
     "C09A|C09B|C09C|C09D",
-    "C03DA"
+    "C03DA",
+    "C03C"
   )
 )

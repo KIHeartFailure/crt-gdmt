@@ -119,7 +119,7 @@ Baseline is defined as date of discharge or, if missing, date of admittance/visi
 first encounter in NPR with CRT for the CRT population and registration in SwedeHF for the controls. 
 If multiple SwedeHF registrations exists, the registration closest to CRT (within 1 year) is selected. 
 
-### GDMT
+### GDMT and loop diuretic
 
 GDMT are: 
 
@@ -127,22 +127,22 @@ GDMT are:
 - ACEi/ARB/ARNi
 - MRA
 
-GDMT at baseline are defined as a dispensed prescription in NPDR 4 months prior up until day before baseline. 
+GDMT and loop diuretic at baseline are defined as a dispensed prescription in NPDR 4 months prior up until day before baseline. 
 
-GDMT at 1 year follow-up are defined as a dispensed prescription in NPDR 12 months $\pm$ 2 months after baseline. 
+GDMT and loop diuretic at 1 year follow-up are defined as a dispensed prescription in NPDR 12 months $\pm$ 2 months after baseline. 
 
 The prescription closest to baseline and 1 year is chosen if multiple prescriptions exist. 
 
 The difference between baseline and 1 year follow-up is defined as: 
 
-- No change: If the patient is not on medication at baseline and not on medication at fu OR no change in achieved % target dose
+- Stable: If the patient is not on medication at baseline and not on medication at fu OR stable in achieved % target dose
 - Increase: If the patient is not on medication at baseline and on medication at fu OR increase in achieved % target dose. For ACEi/ARB/ARNi a switch from ACEi/ARB to ARNi is also considered an increase. 
 - Decrease: If the patient is on medication at baseline and not on medication at fu OR decrease in achieved % target dose. For ACEi/ARB/ARNi a switch from ARNi to ACEi/ARB is also considered an decrease. 
 
-For the combined GDMT variable the sum of the 3 individual medications is calculated (No change: 0, Increase: 1, Decrease: -1) 
-and if the summarized variable is 0 = No change, >0: Increase, <0: Decrease. 
+For the combined GDMT variable the sum of the 3 individual medications is calculated (Stable: 0, Increase: 1, Decrease: -1) 
+and if the summarized variable is 0 = Stable, >0: Increase, <0: Decrease. 
 
-For the models No change and Decrease where combined into one catgory forming a dichomonous variable Increase vs. No change/Decrease. 
+For the models stable and Decrease where combined into one category forming a dichotomous variable Increase vs. Stable/Decrease. 
 
 #### Target dose
 
@@ -156,7 +156,13 @@ The dose taken by the patient was evaluated using the strength of the tablet pre
 
 #### Sensitivity analyses
 
-Since the strength of the pills for ARNi were based on an assumption a sensitivity analyses was performed excluding patients recieving ARNi at baseline or fu. 
+Since the strength of the pills for ARNi were based on an assumption a sensitivity analyses was performed excluding patients recieving ARNi at baseline or fu.
+
+The combined GDMT was also performed were an increase in any of the 3 GDMT was considered an increase, despite the other two descreasing. 
+
+#### Subgroup analyses
+
+Subgroup analyses were performed by systolic blood pressure. 
 
 # Statistical analysis 
 
@@ -170,7 +176,7 @@ comparisons were made and therefore the results should be viewed with care.
 
 Missing data was imputed with multiple imputation (n = 10) using mice [@mice] 
 and Rubin’s rules was used for combining estimates and standard errors across imputed data sets. 
-Variables included in the model are indicated in @tbl-base. CRT and GDMT were not included in the model. 
+Variables included in the model are indicated in @tbl-base. CRT was not included in the model but the baseline value of `r paste0(gdmt$label, collapse = ", ")` was. 
 
 ## Baseline characteristics
 
@@ -182,8 +188,10 @@ differences between groups with the Kruskal-Wallis test.
 
 ## Assoction between CRT and increase in GDMT
 
-The association between CRT compared to No CRT (controls) and increase in the individual GDMT as well as the combined GDMT was evaluated using logistic regression models. 
-Partly crude, partly adjusting for the respective baseline medication (for increase in the combined GDMT variable all 3 baseline medications were adjusted for) and partly adjusting for all variables indicated in @tbl-base together with the baseline medications. 
+The association between CRT compared to No CRT (controls) and increase in the individual GDMT and loop diuretic as well as the combined GDMT was evaluated using logistic regression models. 
+Partly crude, partly adjusting for the respective baseline medication (for increase in the combined GDMT variable all 3 baseline medications were adjusted for), 
+partly adjusting for all variables indicated in @tbl-base together with the baseline medications and 
+partly adjusting for all variables together with the change variable for the other GDMT and loop diuretic. 
 
 ## Predictors of increase in GDMT
 
@@ -225,6 +233,8 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 ## Assoction between CRT and increase in GDMT
 
 {{< include src/medbase_tab.qmd >}}
+
+\clearpage
 
 {{< include src/sankey_figs.qmd >}}
 

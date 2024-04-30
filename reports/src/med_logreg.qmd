@@ -1,25 +1,32 @@
 ```{r}
-#| label: tbl-logregmed
+#| label: logregmedfunc
 #| cache: true
 #| cache.comments: false
-#| tbl-cap: "Association between CRT and increase in GDMT"
 
-medfunc <- function(medvar, medvaradj) {
-  modvarstmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1")
+medfunc_inner <- function(data, impdata, novars, medvar, medvaradj, nomeddiff) {
+  modvarstmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1")
+  modvarstmp <- setdiff(modvarstmp, novars)
+  modvarsmedtmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1", "bbldiff2", "rasiarnidiff2", "mradiff2", "loopdiff2")
+  modvarsmedtmp <- setdiff(modvarsmedtmp, nomeddiff)
+  modvarsmedtmp <- setdiff(modvarsmedtmp, novars)
 
   moduni <- summary(glm(formula(paste0(medvar, " == 'Increase' ~ crt")),
-    family = binomial(link = "logit"), data = rsdata
+    family = binomial(link = "logit"), data = data
   ))
 
   modbi <- summary(glm(formula(paste0(medvar, " == 'Increase' ~ crt + ", paste(medvaradj, collapse = " + "))),
-    family = binomial(link = "logit"), data = rsdata
+    family = binomial(link = "logit"), data = data
   ))
 
-  modadj <- with(imprsdata, glm(formula(paste0(medvar, " == 'Increase' ~ crt + ", paste(modvarstmp, collapse = " + "))),
+  modadj <- with(impdata, glm(formula(paste0(medvar, " == 'Increase' ~ crt + ", paste(modvarstmp, collapse = " + "))),
     family = binomial(link = "logit")
   ))
   modadj <- summary(pool(modadj))
 
+  modadjmed <- with(impdata, glm(formula(paste0(medvar, " == 'Increase' ~ crt + ", paste(modvarsmedtmp, collapse = " + "))),
+    family = binomial(link = "logit")
+  ))
+  modadjmed <- summary(pool(modadjmed))
 
   out <- tibble(
     Med = medvar,
@@ -40,36 +47,101 @@ medfunc <- function(medvar, medvaradj) {
       fn(exp(modadj$estimate[2] - global_z05 * modadj$std.error[2]), 2), "-",
       fn(exp(modadj$estimate[2] + global_z05 * modadj$std.error[2]), 2), "), ",
       fn(modadj$p.value[2], dig = 3, p = T)
+    ),
+    multmed = paste0(
+      fn(exp(modadjmed$estimate[2]), 2), " (",
+      fn(exp(modadjmed$estimate[2] - global_z05 * modadjmed$std.error[2]), 2), "-",
+      fn(exp(modadjmed$estimate[2] + global_z05 * modadjmed$std.error[2]), 2), "), ",
+      fn(modadjmed$p.value[2], dig = 3, p = T)
     )
   )
   return(out)
 }
 
-comb <- medfunc(medvar = "gdmtdiff_cat2", medvaradj = c("sos_lm_bbl1", "sos_lm_rasiarni1", "sos_lm_mra1"))
-bbl <- medfunc(medvar = "bbldiff2", medvaradj = "sos_lm_bbl1")
-rasiarni <- medfunc(medvar = "rasiarnidiff2", medvaradj = "sos_lm_rasiarni1")
-rasiarni_exarni <- medfunc(medvar = "rasiarnidiff2_exarni", medvaradj = "sos_lm_rasiarni1")
-mra <- medfunc(medvar = "mradiff2", medvaradj = "sos_lm_mra1")
+medfunc <- function(data, impdata, novars = NULL, check = F) {
+  rasiarni <- medfunc_inner(data, impdata, novars, medvar = "rasiarnidiff2", medvaradj = "sos_lm_rasiarni1", nomeddiff = c("rasiarnidiff2"))
+  rasiarni_exarni <- medfunc_inner(data, impdata, novars, medvar = "rasiarnidiff2_exarni", medvaradj = "sos_lm_rasiarni1", nomeddiff = c("rasiarnidiff2"))
+  mra <- medfunc_inner(data, impdata, novars, medvar = "mradiff2", medvaradj = "sos_lm_mra1", nomeddiff = c("mradiff2"))
 
-tabgdmt <- bind_rows(comb, bbl, rasiarni, rasiarni_exarni, mra) %>%
-  mutate(
-    Med = str_remove_all(Med, "diff_cat2|diff2"),
-    Med = factor(Med,
-      levels = c("gdmt", "bbl", "rasiarni", "rasiarni_exarni", "mra"),
-      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA")
+  if (!check) {
+    comb <- medfunc_inner(data, impdata, novars, medvar = "gdmtdiff_cat2", medvaradj = c("sos_lm_bbl1", "sos_lm_rasiarni1", "sos_lm_mra1"), nomeddiff = c("bbldiff2", "rasiarnidiff2", "mradiff2", "loopdiff2"))
+    comb_sens <- medfunc_inner(data, impdata, novars,
+      medvar = "gdmtdiff_cat2_inc",
+      medvaradj = c("sos_lm_bbl1", "sos_lm_rasiarni1", "sos_lm_mra1"), nomeddiff = c("bbldiff2", "rasiarnidiff2", "mradiff2", "loopdiff2")
     )
-  )
+    bbl <- medfunc_inner(data, impdata, novars, medvar = "bbldiff2", medvaradj = "sos_lm_bbl1", nomeddiff = c("bbldiff2"))
+    loop <- medfunc_inner(data, impdata, novars, medvar = "loopdiff2", medvaradj = "sos_lm_loop1", nomeddiff = c("loopdiff2"))
+    tabgdmt <- bind_rows(comb, bbl, rasiarni, rasiarni_exarni, mra, loop)
+  } else {
+    tabgdmt <- bind_rows(rasiarni, rasiarni_exarni, mra)
+  }
 
-cn <- c("Medication", "Crude", "Adjusted baseline medication", "Adjusted")
+  tabgdmt <- tabgdmt %>%
+    mutate(
+      Med = str_remove_all(Med, "diff_cat2|diff2"),
+      Med = factor(Med,
+        levels = c("gdmt", "gdmt_inc", "bbl", "rasiarni", "rasiarni_exarni", "mra", "loop"),
+        labels = c("Combined", "Combined - sensitivity", "Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA", "Loop diuretic")
+      )
+    )
 
-# excel
-make_one_xlsxsheet(tabgdmt, colnames = cn)
+  cn <- c("Medication", "Crude", "Adjusted baseline medication", "Adjusted baseline", "Adjusted baseline + change in medications")
 
-cn <- sanitize_text(cn)
+  # excel
+  make_one_xlsxsheet(tabgdmt, colnames = cn)
 
-default_kable(tabgdmt,
-  escape = FALSE,
-  col.names = cn
-) %>%
-  add_header_above(c(" " = 1, "Odds Ratio (95% CI), p-value" = 3))
+  cn <- sanitize_text(cn)
+
+  default_kable(tabgdmt,
+    escape = FALSE,
+    col.names = cn
+  ) %>%
+    add_header_above(c(" " = 1, "Odds Ratio (95% CI), p-value" = 4))
+}
+```
+
+```{r}
+#| label: tbl-logregmed
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc
+#| tbl-cap: "Association between CRT and increase in GDMT"
+
+medfunc(data = rsdata, impdata = imprsdata)
+```
+
+```{r}
+#| label: tbl-logregmed-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc
+#| tbl-cap: "Association between CRT and increase in GDMT - systolic blood pressure < 110 (mmHg)"
+
+imprsdatahypo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == "<110" & !is.na(rsdata$shf_bpsys_cat))
+medfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110"), impdata = imprsdatahypo, novars = "shf_bpsys_cat")
+```
+
+```{r}
+#| label: tbl-logregmed-normobp
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc
+#| tbl-cap: "Association between CRT and increase in GDMT - systolic blood pressure >= 110 (mmHg)"
+
+imprsdatanormo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == ">=110" & !is.na(rsdata$shf_bpsys_cat))
+medfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110"), impdata = imprsdatanormo, novars = "shf_bpsys_cat")
+```
+
+```{r}
+#| label: tbl-logregmed-check
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc
+#| tbl-cap: "Association between CRT and increase in GDMT - excluding patients with an increase in Beta-blocker or Loop diuretic - INTERNAL USE ONLY"
+
+imprsdatacheck <- mice::filter(imprsdata, rsdata$bbldiff2 == "Decrease/Stable" & rsdata$loopdiff2 == "Decrease/Stable")
+medfunc(
+  data = rsdata %>% filter(bbldiff2 == "Decrease/Stable" & loopdiff2 == "Decrease/Stable"),
+  impdata = imprsdatacheck, novars = c("bbldiff2", "loopdiff2"), check = T
+)
 ```

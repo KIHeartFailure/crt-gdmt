@@ -3,7 +3,7 @@
 #| cache: true
 #| cache.comments: false
 
-basetabfunc <- function(x, data, stratavar, catdig, contdig) {
+basetabfunc_inner <- function(x, data, stratavar, catdig, contdig) {
   tmp <- data %>%
     filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
 
@@ -119,6 +119,127 @@ basetabfunc <- function(x, data, stratavar, catdig, contdig) {
     stop("Unknown class in baseline table")
   }
 }
+
+contdig <- 0
+catdig <- 0
+
+basetabfunc <- function(data, novars = NULL) {
+  tab <- data %>%
+    count(crt, .drop = F) %>%
+    mutate(n = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")")) %>%
+    pivot_wider(names_from = crt, values_from = n) %>%
+    mutate(
+      var = "N (%)",
+      level = NA,
+      p = NA,
+      pmis = NA
+    ) %>%
+    select(var, level, pmis, levels(rsdata %>% pull(crt)), p)
+
+  tabvarstmp <- setdiff(tabvars, novars)
+  tabtmp <- sapply(tabvarstmp,
+    FUN = basetabfunc_inner, data = data,
+    stratavar = "crt", catdig = catdig, contdig = contdig
+  )
+
+  tabtmp <- bind_rows(tabtmp)
+  tab <- bind_rows(tab, tabtmp)
+
+  tab <- tab %>%
+    mutate(
+      # if recoding or categorizing will still get org label
+      var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
+      var_tmp = str_replace_all(var_tmp, "(abs)", ""),
+      # if shf/sos combination  will still get org label
+      var_tmp = str_replace_all(var_tmp, "shf_sos_com_", "sos_com_")
+    )
+
+  tab <- left_join(tab,
+    metavars %>%
+      select(variable, label, unit),
+    by = c("var_tmp" = "variable")
+  ) %>%
+    mutate(
+      Variable = coalesce(label, var_tmp),
+      Variable = if_else(!is.na(unit),
+        paste0(Variable, " (", unit, ")"),
+        Variable
+      ),
+      Variable = if_else(!is.na(level) & !is.na(Variable),
+        paste0(Variable, " ", level),
+        coalesce(Variable, paste0("  ", level))
+      ),
+      # small fixes
+      Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
+      `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
+      pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat"), "0", pmis)
+    )
+
+  # footnotes
+  tab <- tab %>%
+    mutate(
+      footnote1 = if_else(!is.na(var) & var %in% modvars, footnote_marker_alphabet(1, format = "latex"), "")
+    ) %>%
+    unite(footnote, starts_with("footnote"), sep = "")
+
+  cn <- c("Variable", c("Missing (%)", levels(rsdata %>% pull(crt)), "p-value"))
+
+  footnotetext <- c(
+    "Included in multiple imputation and regression models."
+  )
+
+  # excel
+  tab_xls <- tab %>%
+    mutate(
+      Variable = paste0(Variable, footnote),
+      Variable = str_remove_all(Variable, "textsuperscript|\\}|\\{"),
+      Variable = str_replace_all(Variable, "\\\\", " ")
+    ) %>%
+    select(Variable, pmis:p) %>%
+    add_row(Variable = "") %>%
+    add_row(Variable = paste0("a ", footnotetext[1]))
+
+  make_one_xlsxsheet(tab_xls, colnames = cn)
+
+  # footnotes
+  tab <- tab %>%
+    mutate(
+      # so no probs
+      Variable = sanitize_text(Variable),
+      Variable = paste0(Variable, footnote),
+      Variable = str_replace_all(Variable, fixed("²"), "\\textsuperscript{2}"),
+      Variable = str_replace_all(Variable, fixed("$>$="), "$\\geq$"),
+      Variable = str_replace_all(Variable, fixed("$<$="), "$\\leq$")
+    ) %>%
+    select(Variable, pmis:p)
+
+  indent_rows <- tab %>%
+    mutate(
+      indent_rows = str_detect(Variable, "  "),
+      rows = row_number()
+    ) %>%
+    filter(indent_rows) %>%
+    pull(rows)
+
+  cn <- sanitize_text(cn)
+
+  default_kable(tab,
+    font_size = 7.5,
+    longtable = TRUE,
+    escape = FALSE,
+    col.names = cn
+  ) %>%
+    add_indent(indent_rows) %>%
+    footnote(
+      footnote_order = c("general", "symbol", "alphabet"),
+      general_title = "",
+      general = c(
+        "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
+      ),
+      alphabet = footnotetext,
+      threeparttable = T
+    )
+}
 ```
 
 ```{r}
@@ -128,121 +249,25 @@ basetabfunc <- function(x, data, stratavar, catdig, contdig) {
 #| dependson: basetabfunc
 #| tbl-cap: "Baseline characteristics"
 
-contdig <- 0
-catdig <- 0
+basetabfunc(data = rsdata)
+```
 
-tab <- rsdata %>%
-  count(crt, .drop = F) %>%
-  mutate(n = paste0(n, " (", fn(n / sum(n) * 100, catdig), ")")) %>%
-  pivot_wider(names_from = crt, values_from = n) %>%
-  mutate(
-    var = "N (%)",
-    level = NA,
-    p = NA,
-    pmis = NA
-  ) %>%
-  select(var, level, pmis, levels(rsdata %>% pull(crt)), p)
+```{r}
+#| label: tbl-base-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - systolic blood pressure < 110 (mmHg)"
 
-tabtmp <- sapply(tabvars,
-  FUN = basetabfunc, data = rsdata,
-  stratavar = "crt", catdig = catdig, contdig = contdig
-)
+basetabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110"), novars = "shf_bpsys_cat")
+```
 
-tabtmp <- bind_rows(tabtmp)
-tab <- bind_rows(tab, tabtmp)
+```{r}
+#| label: tbl-base-normobp
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - systolic blood pressure >= 110 (mmHg)"
 
-tab <- tab %>%
-  mutate(
-    # if recoding or categorizing will still get org label
-    var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
-    var_tmp = str_replace_all(var_tmp, "(abs)", ""),
-    # if shf/sos combination  will still get org label
-    var_tmp = str_replace_all(var_tmp, "shf_sos_com_", "sos_com_")
-  )
-
-tab <- left_join(tab,
-  metavars %>%
-    select(variable, label, unit),
-  by = c("var_tmp" = "variable")
-) %>%
-  mutate(
-    Variable = coalesce(label, var_tmp),
-    Variable = if_else(!is.na(unit),
-      paste0(Variable, " (", unit, ")"),
-      Variable
-    ),
-    Variable = if_else(!is.na(level) & !is.na(Variable),
-      paste0(Variable, " ", level),
-      coalesce(Variable, paste0("  ", level))
-    ),
-    # small fixes
-    Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-    `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
-    pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat"), "0", pmis)
-  )
-
-# footnotes
-tab <- tab %>%
-  mutate(
-    footnote1 = if_else(!is.na(var) & var %in% modvars, footnote_marker_alphabet(1, format = "latex"), "")
-  ) %>%
-  unite(footnote, starts_with("footnote"), sep = "")
-
-cn <- c("Variable", c("Missing (%)", levels(rsdata %>% pull(crt)), "p-value"))
-
-footnotetext <- c(
-  "Included in multiple imputation and regression models."
-)
-
-# excel
-tab_xls <- tab %>%
-  mutate(
-    Variable = paste0(Variable, footnote),
-    Variable = str_remove_all(Variable, "textsuperscript|\\}|\\{"),
-    Variable = str_replace_all(Variable, "\\\\", " ")
-  ) %>%
-  select(Variable, pmis:p) %>%
-  add_row(Variable = "") %>%
-  add_row(Variable = paste0("a ", footnotetext[1]))
-
-make_one_xlsxsheet(tab_xls, colnames = cn)
-
-# footnotes
-tab <- tab %>%
-  mutate(
-    # so no probs
-    Variable = sanitize_text(Variable),
-    Variable = paste0(Variable, footnote),
-    Variable = str_replace_all(Variable, fixed("²"), "\\textsuperscript{2}"),
-    Variable = str_replace_all(Variable, fixed("$>$="), "$\\geq$"),
-    Variable = str_replace_all(Variable, fixed("$<$="), "$\\leq$")
-  ) %>%
-  select(Variable, pmis:p)
-
-indent_rows <- tab %>%
-  mutate(
-    indent_rows = str_detect(Variable, "  "),
-    rows = row_number()
-  ) %>%
-  filter(indent_rows) %>%
-  pull(rows)
-
-cn <- sanitize_text(cn)
-
-default_kable(tab,
-  font_size = 7.5,
-  longtable = TRUE,
-  escape = FALSE,
-  col.names = cn
-) %>%
-  add_indent(indent_rows) %>%
-  footnote(
-    footnote_order = c("general", "symbol", "alphabet"),
-    general_title = "",
-    general = c(
-      "Categorical variables are presented with n (%) and tested with chi-square test and continuous variables with median [q1-q3] and tested with Kruskal-Wallis test."
-    ),
-    alphabet = footnotetext,
-    threeparttable = T
-  )
+basetabfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110"), novars = "shf_bpsys_cat")
 ```

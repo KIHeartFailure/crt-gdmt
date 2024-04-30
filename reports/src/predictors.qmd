@@ -5,7 +5,7 @@
 #| output: false
 
 predictorsfunc <- function(medvar) {
-  modvarstmp <- c(modvars, "sos_lm_bbl1_3", "sos_lm_rasiarni1_3", "sos_lm_mra1_3")
+  modvarstmp <- c(modvars, "sos_lm_bbl1_3", "sos_lm_rasiarni1_3", "sos_lm_mra1_3", "sos_lm_loop1_3")
 
   levcrt <- levels(rsdata %>% pull(crt))
 
@@ -65,8 +65,8 @@ predictorsfunc <- function(medvar) {
     mutate(
       var = coalesce(label, var),
       var = case_when(
-        var == "indexyear_cat2016-2018" ~ "Year 2016-2018 vs 2009-2015",
-        var == "indexyear_cat2019-2021" ~ "Year 2019-2021 vs 2009-2015",
+        var == "indexyear_cat2014-2018" ~ "Year 2014-2018 vs 2009-2013",
+        var == "indexyear_cat2019-2023" ~ "Year 2019-2023 vs 2009-2013",
         var == "shf_sexMale" ~ "Male vs Female",
         var == "shf_age_cat>80" ~ "Age (years) >80 vs <70",
         var == "shf_age_cat70-80" ~ "Age (years) 70-80 vs <70",
@@ -82,9 +82,17 @@ predictorsfunc <- function(medvar) {
         var == "sos_lm_bbl1_3>=50" ~ "Beta-blocker TD (%) >=50 vs No",
         var == "sos_lm_mra1_3<50" ~ "MRA TD (%) <50 vs No",
         var == "sos_lm_mra1_3>=50" ~ "MRA TD (%) >=50 vs No",
+        var == "sos_lm_loop1_3<=40" ~ "Loop diuretic FE (mg) <=40 vs No",
+        var == "sos_lm_loop1_3>40" ~ "Loop diuretic FE (mg) >40 vs No",
         var == "Muscoloskeletal/connective tissue diseases within 3 years" ~ "Muscoloskeletal diseases",
         var == "Previous heart failure hospitalization < 1 year" ~ "Previous HFH < 1 year",
         var == "Malignant cancer within 3 years" ~ "Cancer",
+        var == "shf_nyha_catIII-IV" ~ "NYHA class III-IV vs I-II",
+        var == "shf_bpsys_cat>=110" ~ "Systolic bp (mmHg) >=110 vs <110",
+        var == "shf_heartrate_cat>60" ~ "Heart rate (beats/min) >60 vs <=60",
+        var == "shf_gfrckdepi_cat<60" ~ "eGFR (mL/min/1.73 m²) <60 vs >=60",
+        var == "shf_ntprobnp_cat3rd tertile" ~ "NT-proBNP (pg/ml) 3rd vs 1st tertile",
+        var == "shf_ntprobnp_cat2nd tertile" ~ "NT-proBNP (pg/ml) 2nd vs 1st tertile",
         TRUE ~ var
       ),
       var = str_replace_all(var, ">=", "\u2265"),

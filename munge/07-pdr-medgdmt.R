@@ -77,7 +77,8 @@ lmgdmt3 <- lmgdmt2 %>%
       # str_detect(ATC, "^(C09C|C09D(?!X04))") ~ "arb",
       # str_detect(ATC, "^C09DX04") ~ "arni",
       str_detect(ATC, "^C07") ~ "bbl",
-      str_detect(ATC, "^C03DA") ~ "mra"
+      str_detect(ATC, "^C03DA") ~ "mra",
+      str_detect(ATC, "^C03C") ~ "loop"
     )
   ) %>%
   filter(!is.na(time) & !is.na(med)) # either at index or fu, med redundant, done in sas
@@ -133,14 +134,14 @@ lmgdmt4 <- lmgdmt3 %>%
     )
   )
 
-koll <- lmgdmt4 %>%
-  count(is.na(tabday)) %>%
-  mutate(p = n / sum(n) * 100)
+# koll <- lmgdmt4 %>%
+#  count(is.na(tabday)) %>%
+#  mutate(p = n / sum(n) * 100)
 
-koll <- lmgdmt4 %>%
-  mutate(koll = str_detect(doserlower, "enligttidig") & is.na(tabday)) %>%
-  count(is.na(tabday), koll) %>%
-  mutate(p = n / sum(n) * 100)
+# koll <- lmgdmt4 %>%
+#  mutate(koll = str_detect(doserlower, "enligttidig") & is.na(tabday)) %>%
+#  count(is.na(tabday), koll) %>%
+#  mutate(p = n / sum(n) * 100)
 
 # impute if missing tabsday
 
@@ -220,7 +221,12 @@ lmgdmt4 <- lmgdmt4 %>%
 
       # arni assumption
       ATC == "C09DX04" & antnum %in% c(28, 56) ~ 51.5, # (real dose is 51 mg but to adjust to the so the target dose is correct)
-      ATC == "C09DX04" & antnum %in% c(168) ~ 103
+      ATC == "C09DX04" & antnum %in% c(168) ~ 103,
+
+      # loop d
+      ATC %in% c("C03CA01") ~ 40, #    	furosemid
+      ATC %in% c("C03CA02") ~ 1, #    	bumetanid
+      ATC %in% c("C03CA04") ~ 15 #     	torasemid
     ),
     strength = if_else(ATC == "C09DX04" & tabday > 2, 51.5, strength), # 103/2 (real dose is 51 mg but to adjust to the so the target dose is correct)
     strength = if_else(ATC == "C09DX04" & tabday > 4, 25.75, strength), # 103/5 (real dose is 26 mg but to adjust to the so the target dose is correct)
@@ -236,10 +242,8 @@ lmgdmt4 <- lmgdmt4 %>%
 
 
 koll <- lmgdmt4 %>%
-  filter(ATC %in% c("C07AB02")) %>%
-  mutate(strength = round(strength)) %>%
-  count(strength) %>%
-  mutate(p = n / sum(n) * 100)
+  filter(is.na(strength)) %>%
+  count(ATC)
 
 # targetdoses
 lmgdmt4 <- lmgdmt4 %>%
@@ -278,8 +282,16 @@ lmgdmt4 <- lmgdmt4 %>%
 
         # arni
         ATC == "C09DX04" ~ 206
+        # loop d
+        #      ATC %in% c("C03CA01") ~ 40, #    	furosemid
+        #      ATC %in% c("C03CA02") ~ 1, #    	bumetanid
+        #      ATC %in% c("C03CA04") ~ 20 #     	torasemid
       ),
     targetdose = case_when(
+      # for loop should be furesemid eq
+      ATC == "C03CA01" ~ dose, #    	furosemid
+      ATC == "C03CA02" ~ dose * 40, #    	bumetanid
+      ATC == "C03CA04" ~ dose * 2, #    	torasemid
       is.na(dose) ~ targetdose / 2,
       TRUE ~ dose / targetdose * 100
     )
@@ -329,7 +341,7 @@ lmgdmt7 <- left_join(
 
 lmgdmt8 <- lmgdmt7 %>%
   pivot_wider(names_from = c("med", "time"), values_from = c("targetdose", "arni")) %>%
-  select(-arni_bbl_1, -arni_bbl_2, -arni_mra_2, -arni_mra_1)
+  select(-arni_bbl_1, -arni_bbl_2, -arni_mra_2, -arni_mra_1, -arni_loop_1, -arni_loop_2)
 
 colnames(lmgdmt8) <- str_remove_all(colnames(lmgdmt8), "targetdose_")
 
@@ -370,6 +382,24 @@ dosefuncmra <- function(med) {
     )
   )
 }
+
+dosefuncloop <- function(med) {
+  med <- factor(
+    case_when(
+      is.na(med) ~ 0,
+      med <= 40 ~ 1,
+      med <= 80 ~ 2,
+      med > 80 ~ 3
+    ),
+    levels = 0:3,
+    labels = c(
+      "Not treated",
+      "<=40",
+      "41-80",
+      ">80"
+    )
+  )
+}
 dosefunc2 <- function(med) {
   med <- factor(
     case_when(
@@ -385,6 +415,21 @@ dosefunc2 <- function(med) {
     )
   )
 }
+dosefuncloop2 <- function(med) {
+  med <- factor(
+    case_when(
+      is.na(med) ~ 0,
+      med <= 40 ~ 1,
+      med > 40 ~ 2
+    ),
+    levels = 0:2,
+    labels = c(
+      "Not treated",
+      "<=40",
+      ">40"
+    )
+  )
+}
 
 rsdata <- left_join(rsdata, lmgdmt8, by = "lopnr")
 
@@ -396,9 +441,12 @@ rsdata <- rsdata %>%
     sos_lm_rasiarni2 = dosefunc(rasiarni_2),
     sos_lm_mra1 = dosefuncmra(mra_1),
     sos_lm_mra2 = dosefuncmra(mra_2),
+    sos_lm_loop1 = dosefuncloop(loop_1),
+    sos_lm_loop2 = dosefuncloop(loop_2),
     sos_lm_bbl1_3 = dosefunc2(bbl_1),
     sos_lm_rasiarni1_3 = dosefunc2(rasiarni_1),
-    sos_lm_mra1_3 = dosefunc2(mra_1)
+    sos_lm_mra1_3 = dosefunc2(mra_1),
+    sos_lm_loop1_3 = dosefuncloop2(loop_1)
   )
 
 checkcombdoses <- lmgdmt4 %>%

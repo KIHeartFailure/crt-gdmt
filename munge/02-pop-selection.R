@@ -18,7 +18,7 @@ flow <- flow %>%
 rsdata <- rsdata420 %>%
   select(
     lopnr, shf_indexdtm, shf_followuphfunit, shf_followuplocation_cat, shf_sex, shf_age, shf_age_cat, sos_durationhf, shf_ef_cat, shf_qrs, shf_lbbb, shf_bpsys,
-    shf_bpdia, shf_map, shf_map_cat, censdtm
+    shf_bpdia, shf_map, shf_map_cat, shf_heartrate, shf_gfrckdepi, shf_gfrckdepi_cat, shf_ntprobnp, shf_nyha, shf_nyha_cat, censdtm
   ) %>%
   filter(!is.na(shf_ef_cat))
 flow <- flow %>%

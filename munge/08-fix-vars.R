@@ -14,19 +14,23 @@ rsdata <- rsdata %>%
     ),
     absdiff_crt_shf = if_else(crt == "CRT", abs(diff_crt_shf), NA_real_),
     indexyear_cat = case_when(
-      indexyear <= 2015 ~ "2009-2015",
-      indexyear <= 2018 ~ "2016-2018",
-      indexyear <= 2021 ~ "2019-2021"
+      indexyear <= 2013 ~ "2009-2013",
+      indexyear <= 2018 ~ "2014-2018",
+      indexyear <= 2023 ~ "2019-2023"
     ),
     sos_prevhfh1yr = factor(if_else(sos_timeprevhosphf >= 365 & !is.na(sos_timeprevhosphf), 1, 0), levels = 0:1, labels = c("No", "Yes")),
     shf_bpsys_cat = factor(
       case_when(
         is.na(shf_bpsys) ~ NA_real_,
-        shf_bpsys < 140 ~ 1,
-        shf_bpsys >= 140 ~ 2
+        shf_bpsys < 110 ~ 1,
+        shf_bpsys >= 110 ~ 2
       ),
       levels = 1:2,
-      labels = c("<140", ">=140")
+      labels = c("<110", ">=110")
+    ),
+    shf_heartrate_cat = case_when(
+      shf_heartrate <= 60 ~ "<=60",
+      shf_heartrate > 60 ~ ">60"
     ),
     sos_com_charlsonci_cat = factor(
       case_when(
@@ -42,6 +46,14 @@ rsdata <- rsdata %>%
         "4-7",
         ">=8"
       )
+    ),
+    loopdiff = case_when(
+      sos_lm_loop1 == "Not treated" & sos_lm_loop2 == "Not treated" ~ 0,
+      sos_lm_loop1 == "Not treated" ~ 1,
+      sos_lm_loop2 == "Not treated" ~ -1,
+      round(loop_1) == round(loop_2) ~ 0,
+      round(loop_1) < round(loop_2) ~ 1,
+      round(loop_1) > round(loop_2) ~ -1
     ),
     mradiff = case_when(
       sos_lm_mra1 == "Not treated" & sos_lm_mra2 == "Not treated" ~ 0,
@@ -76,9 +88,15 @@ rsdata <- rsdata %>%
         gdmtdiff == 0 ~ 0,
         gdmtdiff > 0 ~ 1
       ),
-      levels = -1:1, labels = c("Decrease", "No change", "Increase")
+      levels = -1:1, labels = c("Decrease", "Stable", "Increase")
     ),
-
+    gdmtdiff_cat2_inc = factor(
+      case_when(
+        mradiff == 1 | bbldiff == 1 | rasiarnidiff == 1 ~ 1,
+        TRUE ~ 0
+      ),
+      levels = 0:1, labels = c("Decrease/Stable", "Increase")
+    ),
     # ex arni
     rasiarnidiff_exarni = case_when(
       !is.na(arni_rasiarni_1) | !is.na(arni_rasiarni_2) ~ NA_real_,
@@ -97,18 +115,27 @@ rsdata <- rsdata %>%
         gdmtdiff_exarni == 0 ~ 0,
         gdmtdiff_exarni > 0 ~ 1
       ),
-      levels = -1:1, labels = c("Decrease", "No change", "Increase")
+      levels = -1:1, labels = c("Decrease", "Stable", "Increase")
     ),
-    mradiff = factor(mradiff, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    bbldiff = factor(bbldiff, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    rasiarnidiff = factor(rasiarnidiff, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    gdmtdiff_cat2 = fct_collapse(gdmtdiff_cat, "Decrease/No change" = c("Decrease", "No change")),
-    mradiff2 = fct_collapse(mradiff, "Decrease/No change" = c("Decrease", "No change")),
-    bbldiff2 = fct_collapse(bbldiff, "Decrease/No change" = c("Decrease", "No change")),
-    rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/No change" = c("Decrease", "No change")),
-    rasiarnidiff_exarni = factor(rasiarnidiff_exarni, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    gdmtdiff_cat2_exarni = fct_collapse(gdmtdiff_cat_exarni, "Decrease/No change" = c("Decrease", "No change")),
-    rasiarnidiff2_exarni = fct_collapse(rasiarnidiff_exarni, "Decrease/No change" = c("Decrease", "No change"))
+    gdmtdiff_cat2_exarni_inc = factor(
+      case_when(
+        mradiff == 1 | bbldiff == 1 | rasiarnidiff_exarni == 1 ~ 1,
+        TRUE ~ 0
+      ),
+      levels = 0:1, labels = c("Decrease/Stable", "Increase")
+    ),
+    loopdiff = factor(loopdiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    mradiff = factor(mradiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    bbldiff = factor(bbldiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    rasiarnidiff = factor(rasiarnidiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    gdmtdiff_cat2 = fct_collapse(gdmtdiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
+    loopdiff2 = fct_collapse(loopdiff, "Decrease/Stable" = c("Decrease", "Stable")),
+    mradiff2 = fct_collapse(mradiff, "Decrease/Stable" = c("Decrease", "Stable")),
+    bbldiff2 = fct_collapse(bbldiff, "Decrease/Stable" = c("Decrease", "Stable")),
+    rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/Stable" = c("Decrease", "Stable")),
+    rasiarnidiff_exarni = factor(rasiarnidiff_exarni, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    gdmtdiff_cat2_exarni = fct_collapse(gdmtdiff_cat_exarni, "Decrease/Stable" = c("Decrease", "Stable")),
+    rasiarnidiff2_exarni = fct_collapse(rasiarnidiff_exarni, "Decrease/Stable" = c("Decrease", "Stable"))
     #
     # # using categorical levels
     # mradiff_alt = case_when(
@@ -133,15 +160,15 @@ rsdata <- rsdata %>%
     #     gdmtdiff == 0 ~ 0,
     #     gdmtdiff > 0 ~ 1
     #   ),
-    #   levels = -1:1, labels = c("Decrease", "No change", "Increase")
+    #   levels = -1:1, labels = c("Decrease", "Stable", "Increase")
     # ),
-    # mradiff_alt = factor(mradiff_alt, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    # bbldiff_alt = factor(bbldiff_alt, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    # rasiarnidiff_alt = factor(rasiarnidiff_alt, levels = -1:1, labels = c("Decrease", "No change", "Increase")),
-    # gdmtdiff_cat2_alt = fct_collapse(gdmtdiff_cat_alt, "Decrease/No change" = c("Decrease", "No change")),
-    # mradiff2_alt = fct_collapse(mradiff_alt, "Decrease/No change" = c("Decrease", "No change")),
-    # bbldiff2_alt = fct_collapse(bbldiff_alt, "Decrease/No change" = c("Decrease", "No change")),
-    # rasiarnidiff2_alt = fct_collapse(rasiarnidiff_alt, "Decrease/No change" = c("Decrease", "No change"))
+    # mradiff_alt = factor(mradiff_alt, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    # bbldiff_alt = factor(bbldiff_alt, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    # rasiarnidiff_alt = factor(rasiarnidiff_alt, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    # gdmtdiff_cat2_alt = fct_collapse(gdmtdiff_cat_alt, "Decrease/Stable" = c("Decrease", "Stable")),
+    # mradiff2_alt = fct_collapse(mradiff_alt, "Decrease/Stable" = c("Decrease", "Stable")),
+    # bbldiff2_alt = fct_collapse(bbldiff_alt, "Decrease/Stable" = c("Decrease", "Stable")),
+    # rasiarnidiff2_alt = fct_collapse(rasiarnidiff_alt, "Decrease/Stable" = c("Decrease", "Stable"))
   )
 
 # income
@@ -170,6 +197,30 @@ rsdata <- left_join(
     )
   ) %>%
   select(-`33%`, -`66%`)
+
+
+# ntprobnp
+
+nt <- rsdata %>%
+  reframe(ntmed = list(enframe(quantile(shf_ntprobnp,
+    probs = c(0.33, 0.66),
+    na.rm = TRUE
+  )))) %>%
+  unnest(cols = c(ntmed)) %>%
+  pivot_wider(names_from = name, values_from = value)
+
+rsdata <- rsdata %>%
+  mutate(
+    shf_ntprobnp_cat = factor(
+      case_when(
+        shf_ntprobnp < nt$`33%` ~ 1,
+        shf_ntprobnp < nt$`66%` ~ 2,
+        shf_ntprobnp >= nt$`66%` ~ 3
+      ),
+      levels = 1:3,
+      labels = c("1st tertile", "2nd tertile", "3rd tertile")
+    )
+  )
 
 rsdata <- rsdata %>%
   mutate(across(where(is.character), as.factor))

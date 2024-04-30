@@ -12,10 +12,12 @@ sankeyfunc <- function(med, medname) {
     ungroup() %>%
     mutate(
       !!sym(paste0("sos_lm_", med, "1")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "1")), ">=", "\u2265")),
-      !!sym(paste0("sos_lm_", med, "2")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "2")), ">=", "\u2265"))
+      !!sym(paste0("sos_lm_", med, "2")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "2")), ">=", "\u2265")),
+      !!sym(paste0("sos_lm_", med, "1")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "1")), "<=", "\u2264")),
+      !!sym(paste0("sos_lm_", med, "2")) := fct_inorder(str_replace_all(!!sym(paste0("sos_lm_", med, "2")), "<=", "\u2264"))
     )
 
-  if (med == "mra") {
+  if (med %in% c("mra", "loop")) {
     cols <- global_cols[c(1, 3, 4, 5)]
   } else {
     cols <- global_cols
@@ -53,18 +55,33 @@ sankeyfunc <- function(med, medname) {
 ```
 
 ```{r}
-#| label: fig-sankey
+#| label: fig-sankey-1
 #| cache: true
 #| cache.comments: false
 #| dependson: sankeyfunc
 #| fig-cap: "Path Baseline - 1 year follow-up"
-#| fig-subcap: !expr gdmt$label
+#| fig-subcap: !expr gdmt$label[1:2]
 #| fig-height: 4
 #| fig-width: 10
 #| layout-ncol: 1
-#| layout-nrow: 3
+#| layout-nrow: 2
 
 sankeyfunc(med = gdmt$var[1], medname = gdmt$label[1])
 sankeyfunc(med = gdmt$var[2], medname = gdmt$label[2])
+```
+
+```{r}
+#| label: fig-sankey-2
+#| cache: true
+#| cache.comments: false
+#| dependson: sankeyfunc
+#| fig-cap: "Path Baseline - 1 year follow-up"
+#| fig-subcap: !expr gdmt$label[3:4]
+#| fig-height: 4
+#| fig-width: 10
+#| layout-ncol: 1
+#| layout-nrow: 2
+
 sankeyfunc(med = gdmt$var[3], medname = gdmt$label[3])
+sankeyfunc(med = gdmt$var[4], medname = gdmt$label[4])
 ```

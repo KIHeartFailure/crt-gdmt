@@ -18,15 +18,14 @@ load(here(paste0(shfdbpath, "data/v420/meta_statreport.RData")))
 # Munge data --------------------------------------------------------------
 
 source(here("munge/01-vars.R"))
-# source(here("munge/02-add-longerfu.R"))
-source(here("munge/03-pop-selection.R"))
-source(here("munge/04-scb-socioec.R"))
-source(here("munge/05-npr-comorb.R"))
-source(here("munge/06-charlsoncomorbindex_sos.R"))
-source(here("munge/07-pdr-meds.R"))
-source(here("munge/08-pdr-medgdmt.R"))
-source(here("munge/09-fix-vars.R"))
-source(here("munge/10-mi.R"))
+source(here("munge/02-pop-selection.R"))
+source(here("munge/03-scb-socioec.R"))
+source(here("munge/04-npr-comorb.R"))
+source(here("munge/05-charlsoncomorbindex_sos.R"))
+source(here("munge/06-pdr-meds.R"))
+source(here("munge/07-pdr-medgdmt.R"))
+source(here("munge/08-fix-vars.R"))
+source(here("munge/09-mi.R"))
 
 # Cache/save data ---------------------------------------------------------
 

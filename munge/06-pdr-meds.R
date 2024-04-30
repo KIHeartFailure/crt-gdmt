@@ -24,14 +24,14 @@ lmsel <- lmcrt %>%
 rm(lmswedehf)
 gc()
 
-rsdata <- create_medvar(
-  atc = "^(C03)", medname = "diuretic",
-  cohortdata = rsdata,
-  meddata = lmsel,
-  id = "lopnr",
-  valsclass = "fac",
-  metatime = "-120-0"
-)
+# rsdata <- create_medvar(
+#  atc = "^(C03)", medname = "diuretic",
+#  cohortdata = rsdata,
+#  meddata = lmsel,
+#  id = "lopnr",
+#  valsclass = "fac",
+#  metatime = "-120-0"
+# )
 rsdata <- create_medvar(
   atc = "^(C01DA)", medname = "nitrate",
   cohortdata = rsdata,

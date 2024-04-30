@@ -137,22 +137,6 @@ rsdata <- create_sosvar(
   indexdate = indexdtm,
   sosdate = INDATUM,
   diavar = DIA_all,
-  opvar = OP_all,
-  type = "com",
-  name = "renal",
-  diakod = " N1[7-9]| Z491| Z492",
-  opkod = " KAS00| KAS10| KAS20| DR014| DR015| DR016| DR020| DR012| DR013| DR023| DR024| TJA33| TJA35",
-  stoptime = -5 * 365.25,
-  valsclass = "fac",
-  warnings = FALSE
-)
-rsdata <- create_sosvar(
-  sosdata = patregrsdata,
-  cohortdata = rsdata,
-  patid = lopnr,
-  indexdate = indexdtm,
-  sosdate = INDATUM,
-  diavar = DIA_all,
   type = "com",
   name = "copd",
   diakod = " J4[0-4]",
@@ -213,22 +197,6 @@ rsdata <- create_sosvar(
   name = "muscoloskeletal3y",
   diakod = " M",
   stoptime = -3 * 365.25,
-  valsclass = "fac",
-  warnings = FALSE
-)
-rsdata <- create_sosvar(
-  sosdata = patregrsdata,
-  cohortdata = rsdata,
-  patid = lopnr,
-  indexdate = indexdtm,
-  sosdate = INDATUM,
-  diavar = DIA_all,
-  evar = ekod_all,
-  type = "com",
-  name = "alcohol",
-  diakod = " E244| E52| F10| G312| G621| G721| I426| K292| K70| K860| O354| P043| Q860| T51| Z502| Z714",
-  ekod = " Y90| Y91",
-  stoptime = -5 * 365.25,
   valsclass = "fac",
   warnings = FALSE
 )

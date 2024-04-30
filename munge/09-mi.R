@@ -1,6 +1,7 @@
 # Impute missing values ---------------------------------------------------
 
-noimpvars <- names(rsdata)[!names(rsdata) %in% modvars]
+modvarstmp <- c("sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1", modvars)
+noimpvars <- names(rsdata)[!names(rsdata) %in% modvarstmp]
 
 ini <- mice(rsdata, maxit = 0, print = F, m = 1)
 
@@ -10,7 +11,7 @@ pred[noimpvars, ] <- 0 # redundant
 
 # change method used in imputation to prop odds model
 meth <- ini$method
-meth[c("scb_education", "indexyear_cat", "scb_dispincome_cat")] <- "polr"
+meth[c("scb_education", "indexyear_cat", "scb_dispincome_cat", "shf_ntprobnp_cat")] <- "polr"
 meth[noimpvars] <- ""
 
 ## check no cores
@@ -48,9 +49,9 @@ stopImplicitCluster()
 
 datacheck <- mice::complete(imprsdata, 1)
 
-for (i in seq_along(modvars)) {
-  if (any(is.na(datacheck[, modvars[i]]))) stop("Missing for imp vars")
+for (i in seq_along(modvarstmp)) {
+  if (any(is.na(datacheck[, modvarstmp[i]]))) stop("Missing for imp vars")
 }
-for (i in seq_along(modvars)) {
-  if (any(is.na(datacheck[, modvars[i]]))) print(paste0("Missing for ", modvars[i]))
+for (i in seq_along(modvarstmp)) {
+  if (any(is.na(datacheck[, modvarstmp[i]]))) print(paste0("Missing for ", modvarstmp[i]))
 }
