@@ -212,7 +212,8 @@ medtabfunc <- function(data) {
 #| cache: true
 #| cache.comments: false
 #| dependson: medtabfunc
-#| tbl-cap: "Use of GDMT & loop diuretic"
+#| tbl-cap: "Use of GDMT and loop diuretic"
+#| tbl-pos: "H"
 
 medtabfunc(data = rsdata)
 ```
@@ -222,9 +223,10 @@ medtabfunc(data = rsdata)
 #| cache: true
 #| cache.comments: false
 #| dependson: medtabfunc
-#| tbl-cap: "Use of GDMT & loop diuretic - systolic blood pressure < 110 (mmHg)"
+#| tbl-cap: "Use of GDMT and loop diuretic - systolic blood pressure < 110 (mmHg)"
+#| tbl-pos: "H"
 
-medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110"))
+medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)))
 ```
 
 ```{r}
@@ -232,7 +234,41 @@ medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110"))
 #| cache: true
 #| cache.comments: false
 #| dependson: medtabfunc
-#| tbl-cap: "Use of GDMT & loop diuretic - systolic blood pressure >= 110 (mmHg)"
+#| tbl-cap: "Use of GDMT and loop diuretic - systolic blood pressure >= 110 (mmHg)"
+#| tbl-pos: "H"
 
-medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110"))
+medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110" & !is.na(shf_bpsys_cat)))
+```
+
+```{r}
+#| label: tbl-med-durhf1
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - duration of HF 3-9 (months)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(sos_durationhf_cat == "3-9"))
+```
+
+```{r}
+#| label: tbl-med-durhf2
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - duration of HF 10-18 (months)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(sos_durationhf_cat == "10-18"))
+```
+
+```{r}
+#| label: tbl-med-durhf3
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - duration of HF >= 19 (months)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(sos_durationhf_cat == ">=19"))
 ```

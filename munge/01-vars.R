@@ -11,6 +11,7 @@ tabvars <- c(
 
   # organizational
   "sos_durationhf",
+  "sos_durationhf_cat",
   "sos_prevhfh1yr",
   "shf_followuphfunit",
   "shf_followuplocation_cat",
@@ -79,8 +80,8 @@ tabvars_not_in_mod <- c(
   "diff_crt_shf_cat",
   "absdiff_crt_shf",
   # demo
-  "shf_age",
   "sos_durationhf",
+  "shf_age",
   "shf_nyha",
   "shf_bpsys",
   "shf_bpdia",
@@ -155,6 +156,9 @@ metavars <- bind_rows(
     unit = c("days", rep(NA, 18))
   )
 )
+
+metavars <- metavars %>%
+  mutate(unit = if_else(variable == "sos_durationhf", "months", unit))
 
 gdmt <- tibble(
   var = c("bbl", "rasiarni", "mra", "loop"),

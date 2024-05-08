@@ -18,7 +18,15 @@ rsdata <- rsdata %>%
       indexyear <= 2018 ~ "2014-2018",
       indexyear <= 2023 ~ "2019-2023"
     ),
-    sos_prevhfh1yr = factor(if_else(sos_timeprevhosphf >= 365 & !is.na(sos_timeprevhosphf), 1, 0), levels = 0:1, labels = c("No", "Yes")),
+    sos_prevhfh1yr = factor(if_else(sos_timeprevhosphf <= 365 & !is.na(sos_timeprevhosphf), 1, 0), levels = 0:1, labels = c("No", "Yes")),
+    sos_durationhf_cat = factor(
+      case_when(
+        sos_durationhf <= 9 * 30.5 ~ 1,
+        sos_durationhf <= 18 * 30.5 ~ 2,
+        sos_durationhf > 18 * 30.5 ~ 3
+      ),
+      levels = 1:3, labels = c("3-9", "10-18", ">=19")
+    ),
     shf_bpsys_cat = factor(
       case_when(
         is.na(shf_bpsys) ~ NA_real_,
@@ -129,7 +137,7 @@ rsdata <- rsdata %>%
     bbldiff = factor(bbldiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
     rasiarnidiff = factor(rasiarnidiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
     gdmtdiff_cat2 = fct_collapse(gdmtdiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
-    loopdiff2 = fct_collapse(loopdiff, "Decrease/Stable" = c("Decrease", "Stable")),
+    loopdiff2 = fct_collapse(loopdiff, "Increase/Stable" = c("Increase", "Stable")),
     mradiff2 = fct_collapse(mradiff, "Decrease/Stable" = c("Decrease", "Stable")),
     bbldiff2 = fct_collapse(bbldiff, "Decrease/Stable" = c("Decrease", "Stable")),
     rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/Stable" = c("Decrease", "Stable")),

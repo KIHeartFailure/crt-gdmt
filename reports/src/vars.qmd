@@ -3,6 +3,7 @@
 #| cache: true
 #| cache.comments: false
 #| tbl-cap: "Variable definitions and data sources"
+#| tbl-pos: "H"
 
 vars <- tibble(var = c("bbl", "rasiarni", "mra", "loop", tabvars)) %>%
   mutate(

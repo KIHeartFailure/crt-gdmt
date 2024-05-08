@@ -1,139 +1,139 @@
+```{r}
+#| label: barfunc
+#| cache: true
+#| cache.comments: false
+
+barfunc <- function(data = rsdata, gdmtvar = "gdmtdiff_cat", rasiarnivar = "rasiarnidiff") {
+  figdata <- data %>%
+    select(crt, !!sym(gdmtvar), bbldiff, !!sym(rasiarnivar), mradiff, loopdiff) %>%
+    pivot_longer(cols = c(!!sym(gdmtvar), bbldiff, !!sym(rasiarnivar), mradiff, loopdiff)) %>%
+    mutate(
+      name = str_remove_all(name, "diff|_cat|_exarni"),
+      med = factor(name,
+        levels = c("gdmt", "bbl", "rasiarni", "mra", "loop"),
+        labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA", "Loop diuretic")
+      )
+    ) %>%
+    group_by(crt, med, .drop = F) %>%
+    count(value) %>%
+    mutate(
+      p = n / sum(n) * 100
+    ) %>%
+    ungroup()
+
+  chifunc <- function(x) {
+    tibble(
+      pval = fn(chisq.test(data %>% pull(crt), data %>% pull(x))$p.value, p = T, dig = 3),
+      med = str_remove_all(x, "diff|_cat|_exarni")
+    )
+  }
+
+  pval <- lapply(c(gdmtvar, "bbldiff", rasiarnivar, "mradiff", "loopdiff"),
+    FUN = chifunc
+  )
+  pval <- bind_rows(pval) %>%
+    mutate(
+      med = factor(med,
+        levels = c("gdmt", "bbl", "rasiarni", "mra", "loop"),
+        labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA", "Loop diuretic")
+      ),
+      pval = paste0("P: ", pval),
+      value = factor(c(1, 2, 3, 1, 1), levels = 1:3, labels = levels(figdata$value))
+    )
+
+  p <- ggplot(figdata, aes(x = crt, y = p, fill = value)) +
+    geom_bar(stat = "identity", position = "dodge") +
+    scale_fill_manual(values = global_cols[4:1]) +
+    scale_y_continuous(limits = c(0, 100)) +
+    theme_classic() +
+    theme(
+      text = element_text(size = 20, face = "bold"),
+      legend.position = "bottom",
+      legend.box = "vertical",
+      legend.title = element_blank(),
+      axis.text = element_text(color = "black"),
+      axis.title.x = element_blank()
+    ) +
+    labs(y = "Proportion (%)") +
+    geom_text(aes(label = fn(p, dec = 0)), position = position_dodge(width = 0.9), vjust = -0.25, size = 6, fontface = "bold") +
+    facet_grid(cols = vars(med)) +
+    geom_text(
+      data = pval,
+      mapping = aes(x = 1.5, y = 85, label = pval),
+      size = 6, fontface = "bold", hjust = 0.5
+    )
+
+  create_pptx(p)
+  p
+}
+```
 
 ```{r}
 #| label: fig-barplot
 #| cache: true
 #| cache.comments: false
-#| fig-cap: "GDMT by CRT"
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT"
 
-figdata <- rsdata %>%
-  select(crt, gdmtdiff_cat, bbldiff, rasiarnidiff, mradiff, loopdiff) %>%
-  pivot_longer(cols = c(gdmtdiff_cat, bbldiff, rasiarnidiff, mradiff, loopdiff)) %>%
-  mutate(
-    name = str_remove_all(name, "diff|_cat"),
-    med = factor(name,
-      levels = c("gdmt", "bbl", "rasiarni", "mra", "loop"),
-      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA", "Loop diuretic")
-    )
-  ) %>%
-  group_by(crt, med, .drop = F) %>%
-  count(value) %>%
-  mutate(
-    p = n / sum(n) * 100
-  ) %>%
-  ungroup()
-
-chifunc <- function(x) {
-  tibble(
-    pval = fn(chisq.test(rsdata %>% pull(crt), rsdata %>% pull(x))$p.value, p = T, dig = 3),
-    med = str_remove_all(x, "diff|_cat")
-  )
-}
-
-pval <- lapply(c("gdmtdiff_cat", "bbldiff", "rasiarnidiff", "mradiff", "loopdiff"),
-  FUN = chifunc
-)
-pval <- bind_rows(pval) %>%
-  mutate(
-    med = factor(med,
-      levels = c("gdmt", "bbl", "rasiarni", "mra", "loop"),
-      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA", "Loop diuretic")
-    ),
-    pval = paste0("P: ", pval),
-    value = factor(c(1, 2, 3, 1, 1), levels = 1:3, labels = levels(figdata$value))
-  )
-
-p <- ggplot(figdata, aes(x = crt, y = p, fill = value)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_manual(values = global_cols[4:1]) +
-  scale_y_continuous(limits = c(0, 100)) +
-  theme_classic() +
-  theme(
-    text = element_text(size = 20, face = "bold"),
-    legend.position = "bottom",
-    legend.box = "vertical",
-    legend.title = element_blank(),
-    axis.text = element_text(color = "black"),
-    axis.title.x = element_blank()
-  ) +
-  labs(y = "Proportion (%)") +
-  geom_text(aes(label = fn(p, dec = 0)), position = position_dodge(width = 0.9), vjust = -0.25, size = 6, fontface = "bold") +
-  facet_grid(cols = vars(med)) +
-  geom_text(
-    data = pval,
-    mapping = aes(x = 1.5, y = 85, label = pval),
-    size = 6, fontface = "bold", hjust = 0.5
-  )
-
-create_pptx(p)
-p
+barfunc()
 ```
 
 ```{r}
 #| label: fig-barplot-exarni
 #| cache: true
 #| cache.comments: false
-#| fig-cap: "GDMT by CRT - Excluding ARNi"
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - Excluding ARNi"
 
-figdata <- rsdata %>%
-  select(crt, gdmtdiff_cat_exarni, bbldiff, rasiarnidiff_exarni, mradiff, loopdiff) %>%
-  pivot_longer(cols = c(gdmtdiff_cat_exarni, bbldiff, rasiarnidiff_exarni, mradiff, loopdiff)) %>%
-  mutate(
-    name = str_remove_all(name, "diff|_cat|_exarni"),
-    med = factor(name,
-      levels = c("gdmt", "bbl", "rasiarni", "mra", "loop"),
-      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA", "Loop diuretic")
-    )
-  ) %>%
-  filter(!is.na(value)) %>%
-  group_by(crt, med, .drop = F) %>%
-  count(value) %>%
-  mutate(
-    p = n / sum(n) * 100
-  ) %>%
-  ungroup()
+barfunc(data = rsdata, gdmtvar = "gdmtdiff_cat_exarni", rasiarnivar = "rasiarnidiff_exarni")
+```
 
-chifunc <- function(x) {
-  tibble(
-    pval = fn(chisq.test(rsdata %>% pull(crt), rsdata %>% pull(x))$p.value, p = T, dig = 3),
-    med = str_remove_all(x, "diff|_cat|_exarni")
-  )
-}
+```{r}
+#| label: fig-barplot-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - systolic blood pressure < 110 (mmHg)"
 
-pval <- lapply(c("gdmtdiff_cat_exarni", "bbldiff", "rasiarnidiff_exarni", "mradiff", "loopdiff"),
-  FUN = chifunc
-)
-pval <- bind_rows(pval) %>%
-  mutate(
-    med = factor(med,
-      levels = c("gdmt", "bbl", "rasiarni", "mra", "loop"),
-      labels = c("Combined", "Beta-blocker", "ACEi/ARB/ARNi", "MRA", "Loop diuretic")
-    ),
-    pval = paste0("P: ", pval),
-    value = factor(c(1, 2, 3, 1, 1), levels = 1:3, labels = levels(figdata$value))
-  )
+barfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)), gdmtvar = "gdmtdiff_cat", rasiarnivar = "rasiarnidiff")
+```
 
-p <- ggplot(figdata, aes(x = crt, y = p, fill = value)) +
-  geom_bar(stat = "identity", position = "dodge") +
-  scale_fill_manual(values = global_cols[4:1]) +
-  scale_y_continuous(limits = c(0, 100)) +
-  theme_classic() +
-  theme(
-    text = element_text(size = 20, face = "bold"),
-    legend.position = "bottom",
-    legend.box = "vertical",
-    legend.title = element_blank(),
-    axis.text = element_text(color = "black"),
-    axis.title.x = element_blank()
-  ) +
-  labs(y = "Proportion (%)") +
-  geom_text(aes(label = fn(p, dec = 0)), position = position_dodge(width = 0.9), vjust = -0.25, size = 6, fontface = "bold") +
-  facet_grid(cols = vars(med)) +
-  geom_text(
-    data = pval,
-    mapping = aes(x = 1.5, y = 85, label = pval),
-    size = 6, fontface = "bold", hjust = 0.5
-  )
+```{r}
+#| label: fig-barplot-normobp
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - systolic blood pressure >= 110 (mmHg)"
 
-create_pptx(p)
-p
+barfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110" & !is.na(shf_bpsys_cat)), gdmtvar = "gdmtdiff_cat", rasiarnivar = "rasiarnidiff")
+```
+
+```{r}
+#| label: fig-barplot-durhf1
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - duration of HF 3-9 (months)"
+
+barfunc(data = rsdata %>% filter(sos_durationhf_cat == "3-9"), gdmtvar = "gdmtdiff_cat", rasiarnivar = "rasiarnidiff")
+```
+
+```{r}
+#| label: fig-barplot-durhf2
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - duration of HF 10-18 (months)"
+
+barfunc(data = rsdata %>% filter(sos_durationhf_cat == "10-18"), gdmtvar = "gdmtdiff_cat", rasiarnivar = "rasiarnidiff")
+```
+
+```{r}
+#| label: fig-barplot-durhf3
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - duration of HF >= 19 (months)"
+
+barfunc(data = rsdata %>% filter(sos_durationhf_cat == ">=19"), gdmtvar = "gdmtdiff_cat", rasiarnivar = "rasiarnidiff")
 ```

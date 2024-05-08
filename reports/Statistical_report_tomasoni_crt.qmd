@@ -92,7 +92,10 @@ Individual consent was not required, but patients were informed of entry into Sw
 
 ```{r}
 #| label: tbl-flow
-#| tbl-cap: Information for flowchart
+#| cache: true
+#| cache.comments: false
+#| tbl-cap: "Information for flowchart"
+
 default_kable(flow) %>%
   row_spec(c(1, 11), bold = T) %>%
   column_spec(1, width = "15cm")
@@ -142,7 +145,7 @@ The difference between baseline and 1 year follow-up is defined as:
 For the combined GDMT variable the sum of the 3 individual medications is calculated (Stable: 0, Increase: 1, Decrease: -1) 
 and if the summarized variable is 0 = Stable, >0: Increase, <0: Decrease. 
 
-For the models stable and Decrease where combined into one category forming a dichotomous variable Increase vs. Stable/Decrease. 
+For the models stable and Decrease where combined into one category forming a dichotomous variable Increase vs. Stable/Decrease for the GDMT and Decrease vs. Stable/Increase for loop diuretics. 
 
 #### Target dose
 
@@ -186,14 +189,14 @@ differences between groups with the chi-square test.
 Continuous variables are presented with median [first quartile-third quartile] and tested for 
 differences between groups with the Kruskal-Wallis test. 
 
-## Assoction between CRT and increase in GDMT
+## Assoction between CRT and increase in GDMT and decrease in loop diuretic
 
 The association between CRT compared to No CRT (controls) and increase in the individual GDMT and loop diuretic as well as the combined GDMT was evaluated using logistic regression models. 
 Partly crude, partly adjusting for the respective baseline medication (for increase in the combined GDMT variable all 3 baseline medications were adjusted for), 
 partly adjusting for all variables indicated in @tbl-base together with the baseline medications and 
 partly adjusting for all variables together with the change variable for the other GDMT and loop diuretic. 
 
-## Predictors of increase in GDMT
+## Predictors of increase in GDMT and decrease in loop diuretic
 
 The association between baseline characteristics and increase in the individual GDMT as well as the combined GDMT was evaluated using a multivariable logistic regression 
 including the variables shown in the forestplots. The variables were selected based on clinical relevance. The difference between CRT and No CRT was evaluated using and interaction effect (the estimates presented are therefore from different multivariable models).  
@@ -202,6 +205,12 @@ including the variables shown in the forestplots. The variables were selected ba
 
 Possible outliers were evaluated using Cook's distance and multicollinearity was 
 evaluated using the Variance Inflation Factor (VIF) XXX. 
+
+## 1 year follow-up systolic blood pressure and eGFR
+
+For a subset of patients follow-up registrations where available. Follow-up registrations 12 months $\pm$ 2 months 
+after baseline were selected where if multiple registrations existed the one closest to 12 months was selected. 
+Systolic blood pressure and eGRF was presented descriptively by CRT and the respective medications trajectories for these follow-up registrations. 
 
 # Results
 
@@ -230,7 +239,7 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 
 \clearpage
 
-## Assoction between CRT and increase in GDMT
+## Assoction between CRT and increase in GDMT and decrease in loop diuretic
 
 {{< include src/medbase_tab.qmd >}}
 
@@ -238,15 +247,25 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 
 {{< include src/sankey_figs.qmd >}}
 
+\clearpage 
+
 {{< include src/bar.qmd >}}
+
+\clearpage 
 
 {{< include src/med_logreg.qmd >}}
 
 \clearpage
 
-## Predictors of increase in GDMT
+## Predictors of increase in GDMT and decrease in loop diuretic
 
 {{< include src/predictors.qmd >}}
+
+\clearpage
+
+## 1 year follow-up systolic blood pressure and eGFR
+
+{{< include src/fu.qmd >}}
 
 \clearpage
 

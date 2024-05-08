@@ -55,3 +55,10 @@ for (i in seq_along(modvarstmp)) {
 for (i in seq_along(modvarstmp)) {
   if (any(is.na(datacheck[, modvarstmp[i]]))) print(paste0("Missing for ", modvarstmp[i]))
 }
+
+imprsdatahypo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == "<110" & !is.na(rsdata$shf_bpsys_cat))
+imprsdatanormo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == ">=110" & !is.na(rsdata$shf_bpsys_cat))
+
+imprsdatadurhf1 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "3-9")
+imprsdatadurhf2 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "10-18")
+imprsdatadurhf3 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == ">=19")

@@ -26,6 +26,7 @@ source(here("munge/06-pdr-meds.R"))
 source(here("munge/07-pdr-medgdmt.R"))
 source(here("munge/08-fix-vars.R"))
 source(here("munge/09-mi.R"))
+source(here("munge/10-fu.R"))
 
 # Cache/save data ---------------------------------------------------------
 
@@ -34,6 +35,12 @@ save(
   list = c(
     "rsdata",
     "imprsdata",
+    "imprsdatahypo",
+    "imprsdatanormo",
+    "imprsdatadurhf1",
+    "imprsdatadurhf2",
+    "imprsdatadurhf3",
+    "rsdata_fu",
     "flow",
     "modvars",
     "tabvars",

@@ -108,7 +108,7 @@ flow <- flow %>%
   )
 
 rsdata <- rsdata %>%
-  filter(sos_durationhf >= 92)
+  filter(sos_durationhf >= 92) # 183)
 flow <- flow %>%
   add_row(
     Criteria = "Include posts with HF duration in the NPR > 3 months",
