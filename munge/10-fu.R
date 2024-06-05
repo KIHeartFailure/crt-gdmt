@@ -1,5 +1,5 @@
 rsdata_fu <- left_join(rsdata,
-  rsdata420 %>% select(lopnr, shf_indexdtm, shf_gfrckdepi, shf_bpsys),
+  rsdata421 %>% select(lopnr, shf_indexdtm, shf_gfrckdepi, shf_bpsys),
   by = "lopnr",
   suffix = c("_base", "_1yr")
 )

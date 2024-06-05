@@ -230,17 +230,6 @@ medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_c
 ```
 
 ```{r}
-#| label: tbl-med-normobp
-#| cache: true
-#| cache.comments: false
-#| dependson: medtabfunc
-#| tbl-cap: "Use of GDMT and loop diuretic - systolic blood pressure >= 110 (mmHg)"
-#| tbl-pos: "H"
-
-medtabfunc(data = rsdata %>% filter(shf_bpsys_cat == ">=110" & !is.na(shf_bpsys_cat)))
-```
-
-```{r}
 #| label: tbl-med-durhf1
 #| cache: true
 #| cache.comments: false

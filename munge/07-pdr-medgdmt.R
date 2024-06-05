@@ -294,7 +294,8 @@ lmgdmt4 <- lmgdmt4 %>%
       ATC == "C03CA04" ~ dose * 2, #    	torasemid
       is.na(dose) ~ targetdose / 2,
       TRUE ~ dose / targetdose * 100
-    )
+    ),
+    targetdose = if_else(targetdose > 100, 100, targetdose) # if targetdose > 100% set to 100
   )
 
 if (any(is.na(lmgdmt4$targetdose))) stop("Missing target dose")
@@ -348,19 +349,21 @@ colnames(lmgdmt8) <- str_remove_all(colnames(lmgdmt8), "targetdose_")
 dosefunc <- function(med) {
   med <- factor(
     case_when(
-      is.na(med) ~ 0,
+      med == 0 ~ 0,
       med < 25 ~ 1,
       med < 50 ~ 2,
       med < 75 ~ 3,
-      med >= 75 ~ 4
+      med < 100 ~ 4,
+      med >= 100 ~ 5
     ),
-    levels = 0:4,
+    levels = 0:5,
     labels = c(
       "Not treated",
       "<25",
       "25-49",
       "50-74",
-      ">=75"
+      "75-99",
+      "100"
     )
   )
 }
@@ -368,17 +371,17 @@ dosefunc <- function(med) {
 dosefuncmra <- function(med) {
   med <- factor(
     case_when(
-      is.na(med) ~ 0,
+      med == 0 ~ 0,
       med < 50 ~ 1,
-      med < 75 ~ 2,
-      med >= 75 ~ 3
+      med < 100 ~ 2,
+      med >= 100 ~ 3
     ),
     levels = 0:3,
     labels = c(
       "Not treated",
       "<50",
-      "50-74",
-      ">=75"
+      "50-99",
+      "100"
     )
   )
 }
@@ -386,7 +389,7 @@ dosefuncmra <- function(med) {
 dosefuncloop <- function(med) {
   med <- factor(
     case_when(
-      is.na(med) ~ 0,
+      med == 0 ~ 0,
       med <= 40 ~ 1,
       med <= 80 ~ 2,
       med > 80 ~ 3
@@ -403,7 +406,7 @@ dosefuncloop <- function(med) {
 dosefunc2 <- function(med) {
   med <- factor(
     case_when(
-      is.na(med) ~ 0,
+      med == 0 ~ 0,
       med < 50 ~ 1,
       med >= 50 ~ 2
     ),
@@ -418,7 +421,7 @@ dosefunc2 <- function(med) {
 dosefuncloop2 <- function(med) {
   med <- factor(
     case_when(
-      is.na(med) ~ 0,
+      med == 0 ~ 0,
       med <= 40 ~ 1,
       med > 40 ~ 2
     ),
@@ -435,6 +438,14 @@ rsdata <- left_join(rsdata, lmgdmt8, by = "lopnr")
 
 rsdata <- rsdata %>%
   mutate(
+    bbl_1 = if_else(is.na(bbl_1), 0, bbl_1),
+    bbl_2 = if_else(is.na(bbl_2), 0, bbl_2),
+    mra_1 = if_else(is.na(mra_1), 0, mra_1),
+    mra_2 = if_else(is.na(mra_2), 0, mra_2),
+    rasiarni_1 = if_else(is.na(rasiarni_1), 0, rasiarni_1),
+    rasiarni_2 = if_else(is.na(rasiarni_2), 0, rasiarni_2),
+    loop_1 = if_else(is.na(loop_1), 0, loop_1),
+    loop_2 = if_else(is.na(loop_2), 0, loop_2),
     sos_lm_bbl1 = dosefunc(bbl_1),
     sos_lm_bbl2 = dosefunc(bbl_2),
     sos_lm_rasiarni1 = dosefunc(rasiarni_1),

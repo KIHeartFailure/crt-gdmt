@@ -1,3 +1,17 @@
+arniimp <- rsdata %>%
+  filter(!is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2) & rasiarni_1 < rasiarni_2) %>%
+  mutate(rasiarnidiff = rasiarni_2 - rasiarni_1) %>%
+  summarise(med = median(rasiarnidiff)) %>%
+  pull(med)
+
+medfunc <- function(x) {
+  out <- factor(case_when(
+    x == 0 ~ 0,
+    x > 0 ~ 1,
+    x < 0 ~ -1
+  ), levels = -1:1, labels = c("Decrease", "Stable", "Increase"))
+}
+
 rsdata <- rsdata %>%
   mutate(
     crt = factor(crt, levels = 0:1, labels = c("No CRT", "CRT")),
@@ -49,134 +63,45 @@ rsdata <- rsdata %>%
       ),
       levels = 1:4,
       labels = c(
-        "0-1",
+        "1",
         "2-3",
         "4-7",
         ">=8"
       )
     ),
-    loopdiff = case_when(
-      sos_lm_loop1 == "Not treated" & sos_lm_loop2 == "Not treated" ~ 0,
-      sos_lm_loop1 == "Not treated" ~ 1,
-      sos_lm_loop2 == "Not treated" ~ -1,
-      round(loop_1) == round(loop_2) ~ 0,
-      round(loop_1) < round(loop_2) ~ 1,
-      round(loop_1) > round(loop_2) ~ -1
-    ),
-    mradiff = case_when(
-      sos_lm_mra1 == "Not treated" & sos_lm_mra2 == "Not treated" ~ 0,
-      sos_lm_mra1 == "Not treated" ~ 1,
-      sos_lm_mra2 == "Not treated" ~ -1,
-      round(mra_1) == round(mra_2) ~ 0,
-      round(mra_1) < round(mra_2) ~ 1,
-      round(mra_1) > round(mra_2) ~ -1
-    ),
-    bbldiff = case_when(
-      sos_lm_bbl1 == "Not treated" & sos_lm_bbl2 == "Not treated" ~ 0,
-      sos_lm_bbl1 == "Not treated" ~ 1,
-      sos_lm_bbl2 == "Not treated" ~ -1,
-      round(bbl_1) == round(bbl_2) ~ 0,
-      round(bbl_1) < round(bbl_2) ~ 1,
-      round(bbl_1) > round(bbl_2) ~ -1
-    ),
-    rasiarnidiff = case_when(
-      sos_lm_rasiarni1 == "Not treated" & sos_lm_rasiarni2 == "Not treated" ~ 0,
-      sos_lm_rasiarni1 == "Not treated" ~ 1,
-      sos_lm_rasiarni2 == "Not treated" ~ -1,
+    loopdiff = loop_2 - loop_1,
+    loopdiff_cat = medfunc(loopdiff),
+    bbldiff = bbl_2 - bbl_1,
+    bbldiff_cat = medfunc(bbldiff),
+    mradiff = mra_2 - mra_1,
+    mradiff_cat = medfunc(mradiff),
+    rasiarnidiff = rasiarni_2 - rasiarni_1,
+    rasiarnidiff_cat = factor(case_when(
       is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2) ~ 1,
       !is.na(arni_rasiarni_1) & is.na(arni_rasiarni_2) ~ -1,
-      round(rasiarni_1) == round(rasiarni_2) ~ 0,
-      round(rasiarni_1) < round(rasiarni_2) ~ 1,
-      round(rasiarni_1) > round(rasiarni_2) ~ -1
-    ),
-    gdmtdiff = mradiff + bbldiff + rasiarnidiff,
-    gdmtdiff_cat = factor(
-      case_when(
-        gdmtdiff < 0 ~ -1,
-        gdmtdiff == 0 ~ 0,
-        gdmtdiff > 0 ~ 1
-      ),
-      levels = -1:1, labels = c("Decrease", "Stable", "Increase")
-    ),
-    gdmtdiff_cat2_inc = factor(
-      case_when(
-        mradiff == 1 | bbldiff == 1 | rasiarnidiff == 1 ~ 1,
-        TRUE ~ 0
-      ),
-      levels = 0:1, labels = c("Decrease/Stable", "Increase")
-    ),
+      rasiarni_1 == rasiarni_2 ~ 0,
+      rasiarni_1 < rasiarni_2 ~ 1,
+      rasiarni_1 > rasiarni_2 ~ -1
+    ), levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
     # ex arni
-    rasiarnidiff_exarni = case_when(
+    rasiarnidiff_exarni_cat = factor(case_when(
       !is.na(arni_rasiarni_1) | !is.na(arni_rasiarni_2) ~ NA_real_,
-      sos_lm_rasiarni1 == "Not treated" & sos_lm_rasiarni2 == "Not treated" ~ 0,
-      sos_lm_rasiarni1 == "Not treated" ~ 1,
-      sos_lm_rasiarni2 == "Not treated" ~ -1,
-      round(rasiarni_1) == round(rasiarni_2) ~ 0,
-      round(rasiarni_1) < round(rasiarni_2) ~ 1,
-      round(rasiarni_1) > round(rasiarni_2) ~ -1
-    ),
-    gdmtdiff_exarni = mradiff + bbldiff + rasiarnidiff_exarni,
-    gdmtdiff_cat_exarni = factor(
-      case_when(
-        is.na(gdmtdiff_exarni) ~ NA_real_,
-        gdmtdiff_exarni < 0 ~ -1,
-        gdmtdiff_exarni == 0 ~ 0,
-        gdmtdiff_exarni > 0 ~ 1
-      ),
-      levels = -1:1, labels = c("Decrease", "Stable", "Increase")
-    ),
-    gdmtdiff_cat2_exarni_inc = factor(
-      case_when(
-        mradiff == 1 | bbldiff == 1 | rasiarnidiff_exarni == 1 ~ 1,
-        TRUE ~ 0
-      ),
-      levels = 0:1, labels = c("Decrease/Stable", "Increase")
-    ),
-    loopdiff = factor(loopdiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    mradiff = factor(mradiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    bbldiff = factor(bbldiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    rasiarnidiff = factor(rasiarnidiff, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    gdmtdiff_cat2 = fct_collapse(gdmtdiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
-    loopdiff2 = fct_collapse(loopdiff, "Increase/Stable" = c("Increase", "Stable")),
-    mradiff2 = fct_collapse(mradiff, "Decrease/Stable" = c("Decrease", "Stable")),
-    bbldiff2 = fct_collapse(bbldiff, "Decrease/Stable" = c("Decrease", "Stable")),
-    rasiarnidiff2 = fct_collapse(rasiarnidiff, "Decrease/Stable" = c("Decrease", "Stable")),
-    rasiarnidiff_exarni = factor(rasiarnidiff_exarni, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    gdmtdiff_cat2_exarni = fct_collapse(gdmtdiff_cat_exarni, "Decrease/Stable" = c("Decrease", "Stable")),
-    rasiarnidiff2_exarni = fct_collapse(rasiarnidiff_exarni, "Decrease/Stable" = c("Decrease", "Stable"))
-    #
-    # # using categorical levels
-    # mradiff_alt = case_when(
-    #   as.numeric(sos_lm_mra1) == as.numeric(sos_lm_mra2) ~ 0,
-    #   as.numeric(sos_lm_mra1) < as.numeric(sos_lm_mra2) ~ 1,
-    #   as.numeric(sos_lm_mra1) > as.numeric(sos_lm_mra2) ~ -1,
-    # ),
-    # bbldiff_alt = case_when(
-    #   as.numeric(sos_lm_bbl1) == as.numeric(sos_lm_bbl2) ~ 0,
-    #   as.numeric(sos_lm_bbl1) < as.numeric(sos_lm_bbl2) ~ 1,
-    #   as.numeric(sos_lm_bbl1) > as.numeric(sos_lm_bbl2) ~ -1,
-    # ),
-    # rasiarnidiff_alt = case_when(
-    #   as.numeric(sos_lm_rasiarni1) == as.numeric(sos_lm_rasiarni2) ~ 0,
-    #   as.numeric(sos_lm_rasiarni1) < as.numeric(sos_lm_rasiarni2) ~ 1,
-    #   as.numeric(sos_lm_rasiarni1) > as.numeric(sos_lm_rasiarni2) ~ -1,
-    # ),
-    # gdmtdiff_alt = mradiff_alt + bbldiff_alt + rasiarnidiff_alt,
-    # gdmtdiff_cat_alt = factor(
-    #   case_when(
-    #     gdmtdiff < 0 ~ -1,
-    #     gdmtdiff == 0 ~ 0,
-    #     gdmtdiff > 0 ~ 1
-    #   ),
-    #   levels = -1:1, labels = c("Decrease", "Stable", "Increase")
-    # ),
-    # mradiff_alt = factor(mradiff_alt, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    # bbldiff_alt = factor(bbldiff_alt, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    # rasiarnidiff_alt = factor(rasiarnidiff_alt, levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    # gdmtdiff_cat2_alt = fct_collapse(gdmtdiff_cat_alt, "Decrease/Stable" = c("Decrease", "Stable")),
-    # mradiff2_alt = fct_collapse(mradiff_alt, "Decrease/Stable" = c("Decrease", "Stable")),
-    # bbldiff2_alt = fct_collapse(bbldiff_alt, "Decrease/Stable" = c("Decrease", "Stable")),
-    # rasiarnidiff2_alt = fct_collapse(rasiarnidiff_alt, "Decrease/Stable" = c("Decrease", "Stable"))
+      rasiarni_1 == rasiarni_2 ~ 0,
+      rasiarni_1 < rasiarni_2 ~ 1,
+      rasiarni_1 > rasiarni_2 ~ -1
+    ), levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
+    # If switch from acei/arb to arni median change for patients increasing on ace/arb is imputed
+    rasiarnidiff = if_else(is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2), arniimp, rasiarnidiff),
+    rasiarnidiff_exarni = if_else(is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2), NA_real_, rasiarnidiff),
+    mradiff_cat2 = fct_collapse(mradiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
+    bbldiff_cat2 = fct_collapse(bbldiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
+    rasiarnidiff_cat2 = fct_collapse(rasiarnidiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
+    rasiarnidiff_exarni_cat2 = fct_collapse(rasiarnidiff_exarni_cat, "Decrease/Stable" = c("Decrease", "Stable")),
+    mradiff_inccat2 = fct_collapse(mradiff_cat, "Increase/Stable" = c("Increase", "Stable")),
+    bbldiff_inccat2 = fct_collapse(bbldiff_cat, "Increase/Stable" = c("Increase", "Stable")),
+    loopdiff_inccat2 = fct_collapse(loopdiff_cat, "Increase/Stable" = c("Increase", "Stable")),
+    rasiarnidiff_inccat2 = fct_collapse(rasiarnidiff_cat, "Increase/Stable" = c("Increase", "Stable")),
+    rasiarnidiff_exarni_inccat2 = fct_collapse(rasiarnidiff_exarni_cat, "Increase/Stable" = c("Increase", "Stable"))
   )
 
 # income

@@ -67,7 +67,7 @@ vars <- vars %>%
 # data sources and footnotes
 vars <- vars %>%
   mutate(
-    data1 = if_else(str_detect(var, "^shf_") & !var %in% c("shf_age", "shf_sex"), "SwedeHF", NA),
+    data1 = if_else(str_detect(var, "^shf_") & !var %in% c("shf_age", "shf_sex", "shf_indexyear"), "SwedeHF", NA),
     data2 = case_when(
       str_detect(var, "sos_com_|hosp") & !is.na(Code) ~ paste0("NPR: ", Code),
       str_detect(var, "sos_lm|bbl|rasiarni|mra|loop") ~ paste0("NPDR: ", Code),

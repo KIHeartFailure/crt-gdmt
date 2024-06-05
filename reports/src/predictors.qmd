@@ -269,18 +269,6 @@ predictorsfunc <- function(medvar, impdata = imprsdata, novars = NULL) {
 ```
 
 ```{r}
-#| label: fig-predictors-combined
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in Combined"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "gdmtdiff_cat2")
-```
-
-```{r}
 #| label: fig-predictors-bbl
 #| cache: true
 #| cache.comments: false
@@ -289,7 +277,7 @@ predictorsfunc(medvar = "gdmtdiff_cat2")
 #| fig-width: 10
 #| fig-height: 10
 
-predictorsfunc(medvar = "bbldiff2")
+predictorsfunc(medvar = "bbldiff_cat2")
 ```
 
 ```{r}
@@ -301,7 +289,7 @@ predictorsfunc(medvar = "bbldiff2")
 #| fig-width: 10
 #| fig-height: 10
 
-predictorsfunc(medvar = "rasiarnidiff2")
+predictorsfunc(medvar = "rasiarnidiff_cat2")
 ```
 
 ```{r}
@@ -313,101 +301,5 @@ predictorsfunc(medvar = "rasiarnidiff2")
 #| fig-width: 10
 #| fig-height: 10
 
-predictorsfunc(medvar = "mradiff2")
-```
-
-```{r}
-#| label: fig-predictors-combined-hypobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in Combined - systolic blood pressure < 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "gdmtdiff_cat2", impdata = imprsdatahypo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-bbl-hypobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in Beta-blocker - systolic blood pressure < 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "bbldiff2", impdata = imprsdatahypo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-rasiarni-hypobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in ACEi/ARB/ARNi - systolic blood pressure < 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "rasiarnidiff2", impdata = imprsdatahypo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-mra-hypobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in MRA - systolic blood pressure < 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "mradiff2", impdata = imprsdatahypo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-combined-normobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in Combined - systolic blood pressure >= 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "gdmtdiff_cat2", impdata = imprsdatanormo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-bbl-normobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in Beta-blocker - systolic blood pressure >= 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "bbldiff2", impdata = imprsdatanormo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-rasiarni-normobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in ACEi/ARB/ARNi - systolic blood pressure >= 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "rasiarnidiff2", impdata = imprsdatanormo, novars = "shf_bpsys_cat")
-```
-
-```{r}
-#| label: fig-predictors-mra-normobp
-#| cache: true
-#| cache.comments: false
-#| dependson: predictorsfunc
-#| fig-cap: "Associations between baseline characteristics and increase in MRA - systolic blood pressure >= 110 (mmHg)"
-#| fig-width: 10
-#| fig-height: 10
-
-predictorsfunc(medvar = "mradiff2", impdata = imprsdatanormo, novars = "shf_bpsys_cat")
+predictorsfunc(medvar = "mradiff_cat2")
 ```

@@ -1,5 +1,12 @@
 flow <- flow[c(1:8, 10), 1:2]
 names(flow) <- c("Criteria", "N")
+
+flow <- flow %>%
+  mutate(Criteria = if_else(
+    Criteria == "Exclude posts with with index date > 2023-12-31 (SwedeHF)/2021-12-31 (NPR HF, Controls)",
+    "Exclude posts with with index date > 2023-12-31", Criteria
+  ))
+
 flow <- flow %>%
   mutate(
     Ncrt = NA,
@@ -15,9 +22,9 @@ flow <- flow %>%
     N = NA
   )
 
-rsdata <- rsdata420 %>%
+rsdata <- rsdata421 %>%
   select(
-    lopnr, shf_indexdtm, shf_followuphfunit, shf_followuplocation_cat, shf_sex, shf_age, shf_age_cat, sos_durationhf, shf_ef_cat, shf_qrs, shf_lbbb, shf_bpsys,
+    lopnr, shf_indexdtm, shf_centre, shf_followuphfunit, shf_followuplocation_cat, shf_sex, shf_age, shf_age_cat, sos_durationhf, shf_ef_cat, shf_qrs, shf_lbbb, shf_bpsys,
     shf_bpdia, shf_map, shf_map_cat, shf_heartrate, shf_gfrckdepi, shf_gfrckdepi_cat, shf_ntprobnp, shf_nyha, shf_nyha_cat, censdtm
   ) %>%
   filter(!is.na(shf_ef_cat))
@@ -102,7 +109,7 @@ rsdata <- rsdata %>%
   filter(indexdtm <= ymd("2022-08-31"))
 flow <- flow %>%
   add_row(
-    Criteria = "Include posts >= 2022-08-31 (have data in ICD/PM Registry)",
+    Criteria = "Include posts <= 2022-08-31 (have data in ICD/PM Registry)",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )
@@ -118,11 +125,12 @@ flow <- flow %>%
 
 rsdata <- rsdata %>%
   mutate(diff = as.numeric(censdtm - indexdtm)) %>%
-  filter(diff >= 426) %>% # 365.25 + 61
+  # filter(diff >= 426) %>% # 365.25 + 61
+  filter(diff >= 610) %>% # 1.5 years fu + 2 mo
   select(-diff)
 flow <- flow %>%
   add_row(
-    Criteria = "Include posts with >= 1 year + 2 months follow-up",
+    Criteria = "Include posts with >= 1.5 years + 2 months follow-up",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )
@@ -132,7 +140,8 @@ rsdata <- rsdata %>%
     crt == 1 ~ 1,
     is.na(diff_crt_shf) ~ 1,
     diff_crt_shf < 0 ~ 0,
-    diff_crt_shf > 426 ~ 1,
+    # diff_crt_shf > 426 ~ 1,
+    diff_crt_shf > 610 ~ 1,
     TRUE ~ 1
   )) %>%
   filter(keep == 1) %>%
@@ -168,7 +177,7 @@ rsdata <- rsdata %>%
 
 flow <- flow %>%
   add_row(
-    Criteria = "First post (control), closest post (CRT) / patient",
+    Criteria = "First patient of first post (control), closest post (CRT) / patient",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )

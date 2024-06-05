@@ -17,22 +17,22 @@ rsdata <- create_sosvar(
   warnings = FALSE
 )
 
-# Congestive heart failure
-
-rsdata <- create_sosvar(
-  sosdata = patregrsdata,
-  cohortdata = rsdata,
-  patid = lopnr,
-  indexdate = indexdtm,
-  sosdate = INDATUM,
-  diavar = DIA_all,
-  type = "com",
-  name = "cci_chf",
-  diakod = " 402A| 402B| 402X| 404A| 404B| 404X| 425E| 425F| 425H| 425W| 425X| 428| I110| I130| I132| I255| I420| I42[6-9]| I43| I50",
-  stoptime = -10 * 365.25,
-  valsclass = "num",
-  warnings = FALSE
-)
+# # Congestive heart failure
+#
+# rsdata <- create_sosvar(
+#   sosdata = patregrsdata,
+#   cohortdata = rsdata,
+#   patid = lopnr,
+#   indexdate = indexdtm,
+#   sosdate = INDATUM,
+#   diavar = DIA_all,
+#   type = "com",
+#   name = "cci_chf",
+#   diakod = " 402A| 402B| 402X| 404A| 404B| 404X| 425E| 425F| 425H| 425W| 425X| 428| I110| I130| I132| I255| I420| I42[6-9]| I43| I50",
+#   stoptime = -10 * 365.25,
+#   valsclass = "num",
+#   warnings = FALSE
+# )
 
 # Peripheral vascular disease
 
@@ -79,28 +79,29 @@ rsdata <- create_sosvar(
   diavar = DIA_all,
   type = "com",
   name = "cci_copd",
-  diakod = " 491| 492| 496| J4[3-4]",
+  # diakod = " 491| 492| 496| J4[3-4]",
+  diakod = " 491| 492| 496| J4[3-4]| 490| 49[3-5]| 50[0-8]| 516| 517| J41| J42| J4[5-7]| J6[0-9]| J70",
   stoptime = -10 * 365.25,
   valsclass = "num",
   warnings = FALSE
 )
-
-# Other chronic pulmonary disease
-
-rsdata <- create_sosvar(
-  sosdata = patregrsdata,
-  cohortdata = rsdata,
-  patid = lopnr,
-  indexdate = indexdtm,
-  sosdate = INDATUM,
-  diavar = DIA_all,
-  type = "com",
-  name = "cci_copdother",
-  diakod = " 490| 49[3-5]| 50[0-8]| 516| 517| J41| J42| J4[5-7]| J6[0-9]| J70",
-  stoptime = -10 * 365.25,
-  valsclass = "num",
-  warnings = FALSE
-)
+#
+# # Other chronic pulmonary disease
+#
+# rsdata <- create_sosvar(
+#   sosdata = patregrsdata,
+#   cohortdata = rsdata,
+#   patid = lopnr,
+#   indexdate = indexdtm,#
+#   sosdate = INDATUM,
+#   diavar = DIA_all,
+#   type = "com",
+#   name = "cci_copdother",
+#   diakod = " 490| 49[3-5]| 50[0-8]| 516| 517| J41| J42| J4[5-7]| J6[0-9]| J70",
+#   stoptime = -10 * 365.25,
+#   valsclass = "num",
+#   warnings = FALSE
+# )
 
 # Rheumatic disease
 
@@ -215,7 +216,7 @@ rsdata <- create_sosvar(
   diavar = DIA_all,
   type = "com",
   name = "cci_livermild",
-  diakod = " 070| 571C| 571E| 571F| 573| B1[5-9]| K703| K73| K746| K703| K754",
+  diakod = " 070| 571C| 571E| 571F| 573| B1[5-9]| K703| K709| K73| K746| K754",
   stoptime = -10 * 365.25,
   valsclass = "num",
   warnings = FALSE
@@ -318,7 +319,7 @@ rsdata <- create_sosvar(
   diavar = DIA_all,
   type = "com",
   name = "cci_hiv",
-  diakod = " 079J| 279K| B2[0-4]| F024| O987| R75| Z114| Z219| Z711",
+  diakod = " 079J| 279K| B2[0-4]| F024| O987| R75| Z219| Z717",
   stoptime = -10 * 365.25,
   valsclass = "num",
   warnings = FALSE
@@ -326,6 +327,7 @@ rsdata <- create_sosvar(
 
 rsdata <- rsdata %>%
   mutate(
+    sos_com_cci_chf = 1,
     sos_com_cci_diabetes = if_else(sos_com_cci_diabetescompliation == 1, 0, sos_com_cci_diabetes),
     sos_com_cci_livermodsev = if_else(sos_com_cci_livermild == 1 & sos_com_cci_liverspec == 1, 1, sos_com_cci_livermodsev),
     sos_com_cci_livermild = if_else(sos_com_cci_livermodsev == 1, 0, sos_com_cci_livermild),
@@ -338,10 +340,10 @@ rsdata <- rsdata %>%
     sos_com_cci_metastatictumor = sos_com_cci_metastatictumor * 6,
     sos_com_cci_hiv = sos_com_cci_hiv * 6
   ) %>%
+  select(-sos_com_cci_liverspec) %>%
   mutate(sos_com_charlsonci = rowSums(select(., starts_with("sos_com_cci_")))) %>%
   select(-starts_with("sos_com_cci_"))
 
 ccimeta <- metaout
 rm(metaout)
-
 rm(patregrsdata)

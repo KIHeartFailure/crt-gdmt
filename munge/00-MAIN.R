@@ -4,7 +4,7 @@ source(here::here("setup/setup.R"))
 
 # Load data ---------------------------------------------------------------
 
-load(here(shfdbpath, "data/v420/rsdata420.RData"))
+load(here(shfdbpath, "data/v421/rsdata421.RData"))
 load(file = paste0(shfdbpath, "/data/", datadate, "/patregrsdata.RData"))
 load(paste0(shfdbpath, "/data/", datadate, "/rawData_scb.RData"))
 load(file = paste0(shfdbpath, "/data/", datadate, "/rawData_sosdors.RData"))
@@ -13,7 +13,7 @@ icdpm <- read_sas(paste0(shfdbpath, "/raw-data/SOS/20220908/komp ICDPMreg regsto
 # Meta data ect -----------------------------------------------------------
 
 metavars <- read.xlsx(here(shfdbpath, "metadata/meta_variables.xlsx"))
-load(here(paste0(shfdbpath, "data/v420/meta_statreport.RData")))
+load(here(paste0(shfdbpath, "data/v421/meta_statreport.RData")))
 
 # Munge data --------------------------------------------------------------
 

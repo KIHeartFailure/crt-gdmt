@@ -73,7 +73,7 @@ The following registries were linked using the Swedish personal identity number 
 that includes in- and out-hospital patients with HF, regardless of EF and previous history of HF[@swedehf]. Around 80 variables are recorded at 
 discharge from hospital or at the outpatient visit, i.e. index date, and entered into an electronic database managed by the Uppsala Clinical Research 
 Center (Uppsala, Sweden). Up to April 2017 the only inclusion criterion was a clinical diagnosis of HF, which was thereafter defined according to the ICD-10 
-codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. For this project SHFDB version 4.2.0 was used, see https://kiheartfailure.github.io/shfdb4/. SwedeHF provided information on planned follow-up and the controls. 
+codes I50.0, I50.1, I50.9, I42.0, I42.6, I42.7, I25.5, I11.0, I13.0, I13.2. In 2021, 69 of 76 Swedish hospitals enrolled patients in SwedeHF, which had a 32% coverage of the prevalent HF population in Sweden[@annualreport]. For this project SHFDB version 4.2.1 was used, see https://kiheartfailure.github.io/shfdb4/. SwedeHF provided information on planned follow-up and the controls. 
 - The ICD/PM Registry provided information on date of CRT.
 - The National Patient Register (The National Board of Health and Welfare) provided information on comorbidities and the hospitalization outcomes
 - The National Prescribed Drug Register (The National Board of Health and Welfare) provided information on the medications
@@ -83,7 +83,7 @@ and the Register of the Total Population (Statistics Sweden) provided informatio
 
 ## Ethics and Informed consent
 
-The study was approved by the Swedish Ethical Review Authority, dnr 2021-04326, add amendment dnr. 
+The study was approved by the Swedish Ethical Review Authority, dnr 2021-04326 and amendment dnr 2021-06332-02, 2023-05468-02, 2024-02299-02. 
 Individual consent was not required, but patients were informed of entry into SwedeHF and able to opt‐out.
 
 \newpage
@@ -95,13 +95,14 @@ Individual consent was not required, but patients were informed of entry into Sw
 #| cache: true
 #| cache.comments: false
 #| tbl-cap: "Information for flowchart"
+#| tbl-pos: "H"
 
 default_kable(flow) %>%
   row_spec(c(1, 11), bold = T) %>%
   column_spec(1, width = "15cm")
 ```
 
-First patient in: `r min(rsdata$indexdtm)` and last patient in: `r max(rsdata$indexdtm)`. 
+First patient in: `r min(rsdata$indexdtm)` and last patient in: `r max(rsdata$indexdtm)` from approximately `r rsdata %>% distinct(shf_centre) %>% count() %>% pull(n)` enrolling centers.
 
 Note that a control can receive CRT during the 1 year follow-up and a CRT patient can be explanted (ITT). 
 
@@ -254,6 +255,10 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 \clearpage 
 
 {{< include src/med_logreg.qmd >}}
+
+{{< include src/med_logreg_decrease.qmd >}}
+
+{{< include src/med_linjreg.qmd >}}
 
 \clearpage
 

@@ -57,25 +57,23 @@ fufunc_inner <- function(data, medvar) {
 }
 
 fufunc <- function(data) {
-  rasiarni <- fufunc_inner(data, medvar = "rasiarnidiff2")
-  rasiarni_exarni <- fufunc_inner(data, medvar = "rasiarnidiff2_exarni")
-  mra <- fufunc_inner(data, medvar = "mradiff2")
-  comb <- fufunc_inner(data, medvar = "gdmtdiff_cat2")
-  comb_sens <- fufunc_inner(data, medvar = "gdmtdiff_cat2_inc")
-  bbl <- fufunc_inner(data, medvar = "bbldiff2")
-  loop <- fufunc_inner(data, medvar = "loopdiff2")
+  rasiarni <- fufunc_inner(data, medvar = "rasiarnidiff_cat2")
+  rasiarni_exarni <- fufunc_inner(data, medvar = "rasiarnidiff_exarni_cat2")
+  mra <- fufunc_inner(data, medvar = "mradiff_cat2")
+  bbl <- fufunc_inner(data, medvar = "bbldiff_cat2")
+  loop <- fufunc_inner(data, medvar = "loopdiff_inccat2")
   colnames(loop) <- str_replace_all(colnames(loop), "Decrease", "XXXX")
   colnames(loop) <- str_replace_all(colnames(loop), "Increase", "Decrease")
   colnames(loop) <- str_replace_all(colnames(loop), "XXXX", "Increase")
 
-  tabgdmt <- bind_rows(comb, comb_sens, bbl, rasiarni, rasiarni_exarni, mra, loop)
+  tabgdmt <- bind_rows(bbl, rasiarni, rasiarni_exarni, mra, loop)
 
   tabgdmt <- tabgdmt %>%
     mutate(
-      Med = str_remove_all(Med, "diff_cat2|diff2"),
+      Med = str_remove_all(Med, "diff_cat2|diff2|inc"),
       Med = factor(Med,
-        levels = c("gdmt", "gdmt_inc", "bbl", "rasiarni", "rasiarni_exarni", "mra", "loop"),
-        labels = c("Combined", "Combined - sensitivity", "Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA", "Loop diuretic")
+        levels = c("bbl", "rasiarni", "rasiarni_exarni", "mra", "loop"),
+        labels = c("Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA", "Loop diuretic")
       )
     ) %>%
     select(Med, lab, everything()) %>%
@@ -116,59 +114,4 @@ fufunc <- function(data) {
 #| tbl-pos: "H"
 
 fufunc(data = rsdata_fu)
-```
-
-```{r}
-#| label: tbl-fu-hypobp
-#| cache: true
-#| cache.comments: false
-#| dependson: fufunc
-#| tbl-cap: "1 year follow-up by CRT and increase in GDMT and decrease in loop diuretic - systolic blood pressure < 110 (mmHg)"
-#| tbl-pos: "H"
-
-fufunc(data = rsdata_fu %>% filter(shf_bpsys_cat == "<110" & is.na(shf_bpsys_cat)))
-```
-
-```{r}
-#| label: tbl-fu-normobp
-#| cache: true
-#| cache.comments: false
-#| dependson: fufunc
-#| tbl-cap: "1 year follow-up by CRT and increase in GDMT and decrease in loop diuretic - systolic blood pressure >= 110 (mmHg)"
-#| tbl-pos: "H"
-
-fufunc(data = rsdata_fu %>% filter(shf_bpsys_cat == ">=110" & is.na(shf_bpsys_cat)))
-```
-
-```{r}
-#| label: tbl-fu-durhf1
-#| cache: true
-#| cache.comments: false
-#| dependson: fufunc
-#| tbl-cap: "1 year follow-up by CRT and increase in GDMT and decrease in loop diuretic - duration of HF 3-9 (months)"
-#| tbl-pos: "H"
-
-fufunc(data = rsdata_fu %>% filter(sos_durationhf_cat == "3-9"))
-```
-
-```{r}
-#| label: tbl-fu-durhf2
-#| cache: true
-#| cache.comments: false
-#| dependson: fufunc
-#| tbl-cap: "1 year follow-up by CRT and increase in GDMT and decrease in loop diuretic - duration of HF 10-18 (months)"
-#| tbl-pos: "H"
-
-fufunc(data = rsdata_fu %>% filter(sos_durationhf_cat == "10-18"))
-```
-
-```{r}
-#| label: tbl-fu-durhf3
-#| cache: true
-#| cache.comments: false
-#| dependson: fufunc
-#| tbl-cap: "1 year follow-up by CRT and increase in GDMT and decrease in loop diuretic - duration of HF >= 19 (months)"
-#| tbl-pos: "H"
-
-fufunc(data = rsdata_fu %>% filter(sos_durationhf_cat == ">=19"))
 ```
