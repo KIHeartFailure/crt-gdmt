@@ -43,7 +43,7 @@ barfunc <- function(data = rsdata, rasiarnivar = "rasiarnidiff_cat") {
 
   p <- ggplot(figdata, aes(x = crt, y = p, fill = value)) +
     geom_bar(stat = "identity", position = "dodge") +
-    scale_fill_manual(values = global_cols[4:1]) +
+    scale_fill_manual(values = global_cols[c(1, 2, 3)]) +
     scale_y_continuous(limits = c(0, 100)) +
     theme_classic() +
     theme(

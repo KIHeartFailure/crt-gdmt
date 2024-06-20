@@ -2,11 +2,9 @@ lmgdmt <- haven::read_sas(here::here("data/raw-data/lmgdmtdose_420.sas7bdat"))
 
 lmgdmt <- lmgdmt %>%
   filter(
-    # ANTAL > 0 &
     !is.na(forpddd)
   ) %>%
   select(-atc3, -atc4, -atc5) %>%
-  arrange(lopnr, EDATUM, ATC) %>%
   select(-OTYP, -contains("SPKOD"), -VERKS, -ar)
 
 lmgdmt <- left_join(
@@ -16,6 +14,7 @@ lmgdmt <- left_join(
   by = "lopnr",
   relationship = "many-to-many"
 ) %>%
+  arrange(lopnr, EDATUM, ATC) %>%
   mutate(post = 1:n())
 
 # remove neg incorrect prescriptions
@@ -69,7 +68,7 @@ lmgdmt3 <- lmgdmt2 %>%
     diff = as.numeric(EDATUM - indexdtm),
     time = case_when(
       diff >= -120 & diff <= -1 ~ 1,
-      diff >= 306 & diff <= 425 ~ 2
+      diff >= 489 & diff <= 608 ~ 2
     ),
     med = case_when(
       str_detect(ATC, "^(C09A|C09B|C09C|C09D)") ~ "rasiarni",
@@ -90,7 +89,7 @@ lmgdmt4 <- lmgdmt3 %>%
     doserlower = str_squish(doserlower),
     doserlower = str_remove_all(doserlower, "filmdragerad|filmdrag|vattendrivande|vätskedrivande|konv"),
     doserlower = str_squish(doserlower),
-    doserlower = str_replace_all(doserlower, "\\-(| )tab|depottabletter|depottablett|depottabl\\.|depotab|depottabl|depot-tab|depot- tabletter|depot tab|tabletter|tablett|tablet|tabl\\.|tabl|tab\\.|tabt|kapsel|tbl\\.|tbl|talett|kapslar|tb|talb|tqblett| ta |dosering| t ", "tab"),
+    doserlower = str_replace_all(doserlower, "\\-(| )tab|depotkapsel|depottabletter|depottablett|depottabl\\.|depotab|depottabl|depot-tab|depot- tabletter|depot tab|tabletter|tablett|tablet|tabl\\.|tabl|tab\\.|tabt|kapsel|tbl\\.|tbl|talett|kapslar|tb|talb|tqblett| ta |dosering| t ", "tab"),
     doserlower = str_remove_all(doserlower, "varje "),
     doserlower = str_replace_all(doserlower, "ggr|gånger", "gång"),
     doserlower = str_replace_all(doserlower, " \\+ |\\+", ","),
@@ -134,6 +133,15 @@ lmgdmt4 <- lmgdmt3 %>%
     )
   )
 
+
+# koll <- lmgdmt4 %>%
+#  count(DOSER, tabday)
+
+
+# koll <- lmgdmt4 %>%
+#   filter(is.na(tabday)) %>%
+#  count(DOSER)
+
 # koll <- lmgdmt4 %>%
 #  count(is.na(tabday)) %>%
 #  mutate(p = n / sum(n) * 100)
@@ -144,10 +152,6 @@ lmgdmt4 <- lmgdmt3 %>%
 #  mutate(p = n / sum(n) * 100)
 
 # impute if missing tabsday
-
-# koll <- lmgdmt2 %>%
-#  filter(is.na(tabday)) %>%
-#  count(doserlower)
 
 impgdmt <- lmgdmt4 %>%
   group_by(ATC) %>%
@@ -160,7 +164,15 @@ impgdmt <- lmgdmt4 %>%
   ))
 
 lmgdmt4 <- left_join(lmgdmt4, impgdmt, by = "ATC") %>%
-  mutate(tabday = if_else(is.na(tabday), imptabday, tabday))
+  mutate(
+    imptab = if_else(is.na(tabday), 1, 0),
+    tabday = if_else(is.na(tabday), imptabday, tabday)
+  )
+
+misstabday <- lmgdmt4 %>%
+  count(imptab) %>%
+  mutate(p = n / sum(n) * 100) %>%
+  filter(imptab == 1)
 
 # strenghts
 lmgdmt4 <- lmgdmt4 %>%
@@ -240,7 +252,6 @@ lmgdmt4 <- lmgdmt4 %>%
     )
   )
 
-
 koll <- lmgdmt4 %>%
   filter(is.na(strength)) %>%
   count(ATC)
@@ -318,7 +329,7 @@ lmgdmt5 <- lmgdmt4 %>%
 lmgdmt6 <- lmgdmt5 %>%
   mutate(
     diff = as.numeric(EDATUM - indexdtm),
-    tmpdiff = abs(if_else(time == 1, diff, diff - 365))
+    tmpdiff = abs(if_else(time == 1, diff, diff - 365 * 1.5))
   ) %>%
   group_by(lopnr, med, time) %>%
   arrange(tmpdiff) %>%
@@ -436,16 +447,10 @@ dosefuncloop2 <- function(med) {
 
 rsdata <- left_join(rsdata, lmgdmt8, by = "lopnr")
 
+treatvars <- c("bbl_1", "loop_1", "rasiarni_1", "bbl_2", "loop_2", "mra_1", "mra_2", "rasiarni_2")
 rsdata <- rsdata %>%
+  mutate(across(treatvars, ~ replace_na(.x, 0))) %>%
   mutate(
-    bbl_1 = if_else(is.na(bbl_1), 0, bbl_1),
-    bbl_2 = if_else(is.na(bbl_2), 0, bbl_2),
-    mra_1 = if_else(is.na(mra_1), 0, mra_1),
-    mra_2 = if_else(is.na(mra_2), 0, mra_2),
-    rasiarni_1 = if_else(is.na(rasiarni_1), 0, rasiarni_1),
-    rasiarni_2 = if_else(is.na(rasiarni_2), 0, rasiarni_2),
-    loop_1 = if_else(is.na(loop_1), 0, loop_1),
-    loop_2 = if_else(is.na(loop_2), 0, loop_2),
     sos_lm_bbl1 = dosefunc(bbl_1),
     sos_lm_bbl2 = dosefunc(bbl_2),
     sos_lm_rasiarni1 = dosefunc(rasiarni_1),
@@ -490,40 +495,3 @@ checkcombdoses <- lmgdmt4 %>%
   arrange(tmpdiff) %>%
   slice(1) %>%
   ungroup()
-
-
-
-# dubbelokoll
-# load(here(shfdbpath, "data", datadate, "20221012/lmswedehf.RData"))
-#
-# lmcrt <- lmswedehf %>%
-#   filter(
-#     ANTAL >= 0 &
-#       !is.na(forpddd)
-#   )
-#
-# lmcrt <- left_join(
-#   rsdata %>%
-#     select(lopnr, indexdtm),
-#   lmcrt,
-#   by = "lopnr",
-#   relationship = "many-to-many"
-# )
-#
-# lmsel <- lmcrt %>%
-#   mutate(diff = as.numeric(EDATUM - indexdtm)) %>%
-#   filter(diff >= -120 & diff <= -1) %>%
-#   select(lopnr, indexdtm, EDATUM, ATC)
-#
-# rm(lmswedehf)
-# gc()
-#
-# rsdatakoll <- create_medvar(
-#   atc = "^(C07)", medname = "bblkoll",
-#   cohortdata = rsdata,
-#   meddata = lmsel,
-#   id = "lopnr",
-#   valsclass = "fac",
-#   metatime = "-120-0"
-# )
-#

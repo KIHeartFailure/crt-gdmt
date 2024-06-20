@@ -36,7 +36,6 @@ save(
     "rsdata",
     "imprsdata",
     "imprsdatahypo",
-    "imprsdatanormo",
     "imprsdatadurhf1",
     "imprsdatadurhf2",
     "imprsdatadurhf3",
@@ -48,7 +47,8 @@ save(
     "metavars",
     "outcommeta",
     "gdmt",
-    "checkcombdoses"
+    "checkcombdoses",
+    "misstabday"
   )
 )
 

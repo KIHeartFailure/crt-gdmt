@@ -7,14 +7,6 @@ medtabfunc_inner <- function(x, data, stratavar, catdig, contdig) {
   tmp <- data %>%
     filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
 
-  pmis <- data %>%
-    filter(!is.na(!!sym(stratavar))) %>%
-    mutate(mis = factor(if_else(is.na(!!sym(x)), 1, 0), levels = 0:1)) %>%
-    count(mis, .drop = F) %>%
-    mutate(pmis = fn(n / sum(n) * 100, catdig)) %>%
-    filter(mis == "1") %>%
-    pull(pmis)
-
   cl <- class(data %>% pull(!!sym(x)))
   if (cl %in% c("character", "factor")) {
     out <- tmp %>%
@@ -41,43 +33,17 @@ medtabfunc_inner <- function(x, data, stratavar, catdig, contdig) {
     } else {
       p <- "-"
     }
-
-    # if levels No, Yes only present Yes
-    levs <- out %>% pull(level)
-    nlevs <- length(levs)
-    if (nlevs == 2 & all(levs %in% c("No", "Yes"))) {
-      out <- out %>%
-        filter(level == "Yes") %>%
-        mutate(
-          var = x,
-          p = p,
-          pmis = pmis,
-          level = NA
-        )
-    } else {
-      out <- out %>%
-        mutate(
-          var = NA,
-          p = NA,
-          pmis = NA
-        )
-      out <- out %>% add_row(
-        var = x,
-        p = p,
-        pmis = pmis,
-        .before = 1
+    out <- out %>%
+      mutate(
+        var = NA,
+        p = NA
       )
-    }
+    out <- out %>% add_row(
+      var = x,
+      p = p,
+      .before = 1
+    )
   } else if (cl %in% c("numeric", "integer")) {
-    if (length(contdig) > 1) {
-      if (any(contdig$vars %in% x)) {
-        contdig <- contdig %>%
-          filter(vars == x) %>%
-          pull(contdig)
-      } else {
-        contdig <- 0
-      }
-    }
     tmp <- data %>%
       filter(!is.na(!!sym(x)) & !is.na(!!sym(stratavar)))
     out <- tmp %>%
@@ -112,8 +78,7 @@ medtabfunc_inner <- function(x, data, stratavar, catdig, contdig) {
     out <- out %>%
       mutate(
         var = x,
-        p = p,
-        pmis = pmis
+        p = p
       )
   } else {
     stop("Unknown class in baseline table")
@@ -154,7 +119,7 @@ medtabfunc <- function(data) {
   tabboth <- bind_cols(tabbase, tabfu) %>%
     mutate(
       var = case_when(
-        var == "sos_lm_bbl1" ~ " Beta-blocker target dose (%)",
+        var == "sos_lm_bbl1" ~ "Beta-blocker target dose (%)",
         var == "sos_lm_rasiarni1" ~ "ACEi/ARB/ARNi target dose (%)",
         var == "sos_lm_mra1" ~ "MRA target dose (%)",
         var == "sos_lm_loop1" ~ "Loop diuretic Furosemide equivalent (mg)",
@@ -203,7 +168,7 @@ medtabfunc <- function(data) {
       ),
       threeparttable = T
     ) %>%
-    add_header_above(c(" " = 1, "Baseline" = 3, "1 year follow-up" = 3))
+    add_header_above(c(" " = 1, "Baseline" = 3, "1.5 year follow-up" = 3))
 }
 ```
 

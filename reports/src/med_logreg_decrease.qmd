@@ -3,7 +3,7 @@
 #| cache: true
 #| cache.comments: false
 
-medfunc_inner2 <- function(data, impdata, novars, medvar, nomeddiff, val = "Decrease") {
+medfunc_inner2 <- function(data, impdata, novars, medvar, nomeddiff, val = "Increase/Stable") {
   modvarstmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1")
   modvarstmp <- setdiff(modvarstmp, novars)
   modvarsmedtmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1", "bbldiff_inccat2", "rasiarnidiff_inccat2", "mradiff_inccat2", "loopdiff_inccat2")
@@ -24,7 +24,7 @@ medfunc_inner2 <- function(data, impdata, novars, medvar, nomeddiff, val = "Decr
   ))
   modadjmed <- summary(pool(modadjmed))
 
-  ds <- rsdata %>%
+  ds <- data %>%
     group_by(crt) %>%
     count(!!sym(medvar)) %>%
     mutate(
@@ -71,8 +71,8 @@ medfunc2 <- function(data, impdata, novars = NULL) {
     mutate(
       Med = str_remove_all(Med, "_|inc|cat2|diff"),
       Med = factor(Med,
-        levels = c("bbl", "rasiarni", "rasiarniexarni", "mra", "loop"),
-        labels = c("Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA", "Loop diuretic")
+        levels = c("bbl", "rasiarni", "rasiarniexarni", "mra"),
+        labels = c("Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA")
       )
     )
 
@@ -87,7 +87,7 @@ medfunc2 <- function(data, impdata, novars = NULL) {
     escape = FALSE,
     col.names = cn
   ) %>%
-    add_header_above(c(" " = 1, "n (%) Decrease" = 2, "Odds Ratio (95% CI), p-value" = 3))
+    add_header_above(c(" " = 1, "n (%) Stable/Increase" = 2, "Odds Ratio (95% CI), p-value" = 3))
 }
 ```
 
@@ -96,7 +96,7 @@ medfunc2 <- function(data, impdata, novars = NULL) {
 #| cache: true
 #| cache.comments: false
 #| dependson: logregmedfunc2
-#| tbl-cap: "Association between CRT and decrease in GDMT"
+#| tbl-cap: "Association between CRT and stable/increase in GDMT"
 #| tbl-pos: "H"
 
 medfunc2(data = rsdata, impdata = imprsdata)
@@ -107,7 +107,7 @@ medfunc2(data = rsdata, impdata = imprsdata)
 #| cache: true
 #| cache.comments: false
 #| dependson: logregmedfunc2
-#| tbl-cap: "Association between CRT and decrease in GDMT - systolic blood pressure < 110 (mmHg)"
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - systolic blood pressure < 110 (mmHg)"
 #| tbl-pos: "H"
 
 medfunc2(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)), impdata = imprsdatahypo, novars = "shf_bpsys_cat")
@@ -118,7 +118,7 @@ medfunc2(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat
 #| cache: true
 #| cache.comments: false
 #| dependson: logregmedfunc2
-#| tbl-cap: "Association between CRT and decrease in GDMT - duration of HF 3-9 (months)"
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - duration of HF 3-9 (months)"
 #| tbl-pos: "H"
 
 medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "3-9"), impdata = imprsdatadurhf1, novars = c("sos_durationhf_cat"))
@@ -129,7 +129,7 @@ medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "3-9"), impdata = imprsd
 #| cache: true
 #| cache.comments: false
 #| dependson: logregmedfunc2
-#| tbl-cap: "Association between CRT and decrease - duration of HF 10-18 (months)"
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - duration of HF 10-18 (months)"
 #| tbl-pos: "H"
 
 medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "10-18"), impdata = imprsdatadurhf2, novars = c("sos_durationhf_cat"))
@@ -140,7 +140,7 @@ medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "10-18"), impdata = impr
 #| cache: true
 #| cache.comments: false
 #| dependson: logregmedfunc2
-#| tbl-cap: "Association between CRT and decrease - duration of HF >= 19 (months)"
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - duration of HF >= 19 (months)"
 #| tbl-pos: "H"
 
 medfunc2(data = rsdata %>% filter(sos_durationhf_cat == ">=19"), impdata = imprsdatadurhf3, novars = c("sos_durationhf_cat"))

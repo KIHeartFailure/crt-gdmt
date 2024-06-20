@@ -3,7 +3,10 @@
 #| cache: true
 #| cache.comments: false
 
-medfunc_inner <- function(data, impdata, novars, medvar, nomeddiff, val = "Increase") {
+medfunc_inner <- function(data, impdata, novars, medvar, nomeddiff = NULL, val = "Increase") {
+  if (is.null(nomeddiff)) {
+    nomeddiff <- medvar
+  }
   modvarstmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1")
   modvarstmp <- setdiff(modvarstmp, novars)
   modvarsmedtmp <- c(modvars, "sos_lm_rasiarni1", "sos_lm_bbl1", "sos_lm_mra1", "sos_lm_loop1", "bbldiff_cat2", "rasiarnidiff_cat2", "mradiff_cat2", "loopdiff_inccat2")
@@ -24,7 +27,7 @@ medfunc_inner <- function(data, impdata, novars, medvar, nomeddiff, val = "Incre
   ))
   modadjmed <- summary(pool(modadjmed))
 
-  ds <- rsdata %>%
+  ds <- data %>%
     group_by(crt) %>%
     count(!!sym(medvar)) %>%
     mutate(
@@ -60,18 +63,13 @@ medfunc_inner <- function(data, impdata, novars, medvar, nomeddiff, val = "Incre
   return(out)
 }
 
-medfunc <- function(data, impdata, novars = NULL, check = F) {
-  rasiarni <- medfunc_inner(data, impdata, novars, medvar = "rasiarnidiff_cat2", nomeddiff = c("rasiarnidiff_cat2"))
+medfunc <- function(data, impdata, novars = NULL) {
+  rasiarni <- medfunc_inner(data, impdata, novars, medvar = "rasiarnidiff_cat2")
   rasiarni_exarni <- medfunc_inner(data, impdata, novars, medvar = "rasiarnidiff_exarni_cat2", nomeddiff = c("rasiarnidiff_cat2"))
-  mra <- medfunc_inner(data, impdata, novars, medvar = "mradiff_cat2", nomeddiff = c("mradiff_cat2"))
-
-  if (!check) {
-    bbl <- medfunc_inner(data, impdata, novars, medvar = "bbldiff_cat2", nomeddiff = c("bbldiff_cat2"))
-    loop <- medfunc_inner(data, impdata, novars, medvar = "loopdiff_inccat2", nomeddiff = c("loopdiff_inccat2"), val = "Decrease")
-    tabgdmt <- bind_rows(bbl, rasiarni, rasiarni_exarni, mra, loop)
-  } else {
-    tabgdmt <- bind_rows(rasiarni, rasiarni_exarni, mra)
-  }
+  mra <- medfunc_inner(data, impdata, novars, medvar = "mradiff_cat2")
+  bbl <- medfunc_inner(data, impdata, novars, medvar = "bbldiff_cat2")
+  loop <- medfunc_inner(data, impdata, novars, medvar = "loopdiff_inccat2", val = "Decrease")
+  tabgdmt <- bind_rows(bbl, rasiarni, rasiarni_exarni, mra, loop)
 
   tabgdmt <- tabgdmt %>%
     mutate(

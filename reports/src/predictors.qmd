@@ -4,9 +4,8 @@
 #| cache.comments: false
 #| output: false
 
-predictorsfunc <- function(medvar, impdata = imprsdata, novars = NULL) {
-  modvarstmp <- c(modvars, "sos_lm_bbl1_3", "sos_lm_rasiarni1_3", "sos_lm_mra1_3", "sos_lm_loop1_3")
-  modvarstmp <- setdiff(modvarstmp, novars)
+predictorsfunc <- function(medvar, impdata = imprsdata) {
+  modvarstmp <- c("sos_lm_bbl1_3", "sos_lm_rasiarni1_3", "sos_lm_mra1_3", "sos_lm_loop1_3", modvars)
 
   levcrt <- levels(rsdata %>% pull(crt))
 
@@ -67,7 +66,7 @@ predictorsfunc <- function(medvar, impdata = imprsdata, novars = NULL) {
       var = coalesce(label, var),
       var = case_when(
         var == "indexyear_cat2014-2018" ~ "Year 2014-2018 vs 2009-2013",
-        var == "indexyear_cat2019-2023" ~ "Year 2019-2023 vs 2009-2013",
+        var == "indexyear_cat2019-2022" ~ "Year 2019-2022 vs 2009-2013",
         var == "shf_sexMale" ~ "Male vs Female",
         var == "shf_age_cat>80" ~ "Age (years) >80 vs <70",
         var == "shf_age_cat70-80" ~ "Age (years) 70-80 vs <70",
@@ -94,6 +93,8 @@ predictorsfunc <- function(medvar, impdata = imprsdata, novars = NULL) {
         var == "shf_gfrckdepi_cat<60" ~ "eGFR (mL/min/1.73 m²) <60 vs >=60",
         var == "shf_ntprobnp_cat3rd tertile" ~ "NT-proBNP (pg/ml) 3rd vs 1st tertile",
         var == "shf_ntprobnp_cat2nd tertile" ~ "NT-proBNP (pg/ml) 2nd vs 1st tertile",
+        var == "sos_durationhf_cat10-18" ~ "Duration of HF (months) 10-18 vs 3-9",
+        var == "sos_durationhf_cat>=19" ~ "Duration of HF (months) >=19 vs 3-9",
         TRUE ~ var
       ),
       var = str_replace_all(var, ">=", "\u2265"),
@@ -108,7 +109,7 @@ predictorsfunc <- function(medvar, impdata = imprsdata, novars = NULL) {
   # max(predout$uci)
 
   xmin <- .04
-  xmax <- 3.4
+  xmax <- 3
 
   p1 <- ggplot(predout %>% filter(lev == "No CRT"), aes(x = or, y = var2, color = cols)) +
     # Add a reference dashed line at 1

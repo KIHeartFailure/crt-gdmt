@@ -8,7 +8,7 @@ rsdata_fu <- rsdata_fu %>%
   mutate(
     diff = as.numeric(shf_indexdtm - indexdtm)
   ) %>%
-  filter(diff >= 306 & diff <= 425) %>%
+  filter(diff >= 489 & diff <= 608) %>%
   group_by(lopnr) %>%
   arrange(abs(diff)) %>%
   slice(1) %>%

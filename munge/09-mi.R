@@ -57,7 +57,6 @@ for (i in seq_along(modvarstmp)) {
 }
 
 imprsdatahypo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == "<110" & !is.na(rsdata$shf_bpsys_cat))
-imprsdatanormo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == ">=110" & !is.na(rsdata$shf_bpsys_cat))
 
 imprsdatadurhf1 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "3-9")
 imprsdatadurhf2 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "10-18")

@@ -1,9 +1,3 @@
-arniimp <- rsdata %>%
-  filter(!is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2) & rasiarni_1 < rasiarni_2) %>%
-  mutate(rasiarnidiff = rasiarni_2 - rasiarni_1) %>%
-  summarise(med = median(rasiarnidiff)) %>%
-  pull(med)
-
 medfunc <- function(x) {
   out <- factor(case_when(
     x == 0 ~ 0,
@@ -30,14 +24,15 @@ rsdata <- rsdata %>%
     indexyear_cat = case_when(
       indexyear <= 2013 ~ "2009-2013",
       indexyear <= 2018 ~ "2014-2018",
-      indexyear <= 2023 ~ "2019-2023"
+      indexyear <= 2023 ~ "2019-2022"
     ),
     sos_prevhfh1yr = factor(if_else(sos_timeprevhosphf <= 365 & !is.na(sos_timeprevhosphf), 1, 0), levels = 0:1, labels = c("No", "Yes")),
+    sos_durationhf = sos_durationhf / 30.5,
     sos_durationhf_cat = factor(
       case_when(
-        sos_durationhf <= 9 * 30.5 ~ 1,
-        sos_durationhf <= 18 * 30.5 ~ 2,
-        sos_durationhf > 18 * 30.5 ~ 3
+        sos_durationhf <= 9 ~ 1,
+        sos_durationhf <= 18 ~ 2,
+        sos_durationhf > 18 ~ 3
       ),
       levels = 1:3, labels = c("3-9", "10-18", ">=19")
     ),
@@ -90,9 +85,6 @@ rsdata <- rsdata %>%
       rasiarni_1 < rasiarni_2 ~ 1,
       rasiarni_1 > rasiarni_2 ~ -1
     ), levels = -1:1, labels = c("Decrease", "Stable", "Increase")),
-    # If switch from acei/arb to arni median change for patients increasing on ace/arb is imputed
-    rasiarnidiff = if_else(is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2), arniimp, rasiarnidiff),
-    rasiarnidiff_exarni = if_else(is.na(arni_rasiarni_1) & !is.na(arni_rasiarni_2), NA_real_, rasiarnidiff),
     mradiff_cat2 = fct_collapse(mradiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
     bbldiff_cat2 = fct_collapse(bbldiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),
     rasiarnidiff_cat2 = fct_collapse(rasiarnidiff_cat, "Decrease/Stable" = c("Decrease", "Stable")),

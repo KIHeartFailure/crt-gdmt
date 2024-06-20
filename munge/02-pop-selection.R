@@ -109,7 +109,7 @@ rsdata <- rsdata %>%
   filter(indexdtm <= ymd("2022-08-31"))
 flow <- flow %>%
   add_row(
-    Criteria = "Include posts <= 2022-08-31 (have data in ICD/PM Registry)",
+    Criteria = "Include posts <= 2022-08-31 (data available from the ICD/PM Registry)",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )
@@ -125,7 +125,6 @@ flow <- flow %>%
 
 rsdata <- rsdata %>%
   mutate(diff = as.numeric(censdtm - indexdtm)) %>%
-  # filter(diff >= 426) %>% # 365.25 + 61
   filter(diff >= 610) %>% # 1.5 years fu + 2 mo
   select(-diff)
 flow <- flow %>%
@@ -140,7 +139,6 @@ rsdata <- rsdata %>%
     crt == 1 ~ 1,
     is.na(diff_crt_shf) ~ 1,
     diff_crt_shf < 0 ~ 0,
-    # diff_crt_shf > 426 ~ 1,
     diff_crt_shf > 610 ~ 1,
     TRUE ~ 1
   )) %>%

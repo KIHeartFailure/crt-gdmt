@@ -1,7 +1,9 @@
 ```{r}
-#| label: fufunc
+#| label: tbl-fu
 #| cache: true
 #| cache.comments: false
+#| tbl-cap: "Difference between 1.5 year follow-up and baseline by CRT and increase in GDMT and decrease in loop diuretic"
+#| tbl-pos: "H"
 
 fufunc_inner <- function(data, medvar) {
   out1 <- data %>%
@@ -56,62 +58,49 @@ fufunc_inner <- function(data, medvar) {
   return(out)
 }
 
-fufunc <- function(data) {
-  rasiarni <- fufunc_inner(data, medvar = "rasiarnidiff_cat2")
-  rasiarni_exarni <- fufunc_inner(data, medvar = "rasiarnidiff_exarni_cat2")
-  mra <- fufunc_inner(data, medvar = "mradiff_cat2")
-  bbl <- fufunc_inner(data, medvar = "bbldiff_cat2")
-  loop <- fufunc_inner(data, medvar = "loopdiff_inccat2")
-  colnames(loop) <- str_replace_all(colnames(loop), "Decrease", "XXXX")
-  colnames(loop) <- str_replace_all(colnames(loop), "Increase", "Decrease")
-  colnames(loop) <- str_replace_all(colnames(loop), "XXXX", "Increase")
+rasiarni <- fufunc_inner(rsdata_fu, medvar = "rasiarnidiff_cat2")
+rasiarni_exarni <- fufunc_inner(rsdata_fu, medvar = "rasiarnidiff_exarni_cat2")
+mra <- fufunc_inner(rsdata_fu, medvar = "mradiff_cat2")
+bbl <- fufunc_inner(rsdata_fu, medvar = "bbldiff_cat2")
+loop <- fufunc_inner(rsdata_fu, medvar = "loopdiff_inccat2")
+colnames(loop) <- str_replace_all(colnames(loop), "Decrease", "XXXX")
+colnames(loop) <- str_replace_all(colnames(loop), "Increase", "Decrease")
+colnames(loop) <- str_replace_all(colnames(loop), "XXXX", "Increase")
 
-  tabgdmt <- bind_rows(bbl, rasiarni, rasiarni_exarni, mra, loop)
+tabgdmt <- bind_rows(bbl, rasiarni, rasiarni_exarni, mra, loop)
 
-  tabgdmt <- tabgdmt %>%
-    mutate(
-      Med = str_remove_all(Med, "diff_cat2|diff2|inc"),
-      Med = factor(Med,
-        levels = c("bbl", "rasiarni", "rasiarni_exarni", "mra", "loop"),
-        labels = c("Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA", "Loop diuretic")
-      )
-    ) %>%
-    select(Med, lab, everything()) %>%
-    mutate(Med = if_else(lab == "Systolic blood pressure (mmHg)", Med, NA))
-
-  cn <- c("Medication", "", rep(c("Decrease (Increase*)/ Stable", "Increase (Decrease*)"), 2))
-
-  # excel
-  make_one_xlsxsheet(tabgdmt, colnames = cn)
-
-  cn <- sanitize_text(cn)
-
-  default_kable(tabgdmt,
-    escape = FALSE,
-    col.names = cn
+tabgdmt <- tabgdmt %>%
+  mutate(
+    Med = str_remove_all(Med, "diff_cat2|diff_inccat2|diff|_cat2"),
+    Med = factor(Med,
+      levels = c("bbl", "rasiarni", "rasiarni_exarni", "mra", "loop"),
+      labels = c("Beta-blocker", "ACEi/ARB/ARNi", "ACEi/ARB", "MRA", "Loop diuretic")
+    )
   ) %>%
-    add_header_above(c(" " = 1, " " = 1, "No CRT" = 2, "CRT" = 2)) %>%
-    footnote(
-      footnote_order = c("general", "symbol", "alphabet"),
-      general_title = "",
-      general = c(
-        "Presented as N, median [q1-q3]."
-      ),
-      symbol = c(
-        "Loop diuretic"
-      )
-    ) %>%
-    column_spec(c(3:6), width = "4cm")
-}
-```
+  select(Med, lab, everything()) %>%
+  mutate(Med = if_else(lab == "Systolic blood pressure (mmHg)", Med, NA))
 
-```{r}
-#| label: tbl-fu
-#| cache: true
-#| cache.comments: false
-#| dependson: fufunc
-#| tbl-cap: "1 year follow-up by CRT and increase in GDMT and decrease in loop diuretic"
-#| tbl-pos: "H"
+cn <- c("Medication", "", rep(c("Decrease (Increase*)/ Stable", "Increase (Decrease*)"), 2))
 
-fufunc(data = rsdata_fu)
+# excel
+make_one_xlsxsheet(tabgdmt, colnames = cn)
+
+cn <- sanitize_text(cn)
+
+default_kable(tabgdmt,
+  escape = FALSE,
+  col.names = cn
+) %>%
+  add_header_above(c(" " = 1, " " = 1, "No CRT" = 2, "CRT" = 2)) %>%
+  footnote(
+    footnote_order = c("general", "symbol", "alphabet"),
+    general_title = "",
+    general = c(
+      "Presented as N, median [q1-q3] value at 1.5 year follow-up - value at baseline."
+    ),
+    symbol = c(
+      "Loop diuretic"
+    )
+  ) %>%
+  column_spec(c(3:6), width = "4cm")
 ```

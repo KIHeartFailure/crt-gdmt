@@ -17,22 +17,7 @@ rsdata <- create_sosvar(
   warnings = FALSE
 )
 
-# # Congestive heart failure
-#
-# rsdata <- create_sosvar(
-#   sosdata = patregrsdata,
-#   cohortdata = rsdata,
-#   patid = lopnr,
-#   indexdate = indexdtm,
-#   sosdate = INDATUM,
-#   diavar = DIA_all,
-#   type = "com",
-#   name = "cci_chf",
-#   diakod = " 402A| 402B| 402X| 404A| 404B| 404X| 425E| 425F| 425H| 425W| 425X| 428| I110| I130| I132| I255| I420| I42[6-9]| I43| I50",
-#   stoptime = -10 * 365.25,
-#   valsclass = "num",
-#   warnings = FALSE
-# )
+# Congestive heart failure assume all have
 
 # Peripheral vascular disease
 
@@ -79,29 +64,11 @@ rsdata <- create_sosvar(
   diavar = DIA_all,
   type = "com",
   name = "cci_copd",
-  # diakod = " 491| 492| 496| J4[3-4]",
   diakod = " 491| 492| 496| J4[3-4]| 490| 49[3-5]| 50[0-8]| 516| 517| J41| J42| J4[5-7]| J6[0-9]| J70",
   stoptime = -10 * 365.25,
   valsclass = "num",
   warnings = FALSE
 )
-#
-# # Other chronic pulmonary disease
-#
-# rsdata <- create_sosvar(
-#   sosdata = patregrsdata,
-#   cohortdata = rsdata,
-#   patid = lopnr,
-#   indexdate = indexdtm,#
-#   sosdate = INDATUM,
-#   diavar = DIA_all,
-#   type = "com",
-#   name = "cci_copdother",
-#   diakod = " 490| 49[3-5]| 50[0-8]| 516| 517| J41| J42| J4[5-7]| J6[0-9]| J70",
-#   stoptime = -10 * 365.25,
-#   valsclass = "num",
-#   warnings = FALSE
-# )
 
 # Rheumatic disease
 

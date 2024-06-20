@@ -96,7 +96,7 @@ vars <- vars %>%
 footnotetext <- c(
   "Derived from diagnoses/operations in all positions, in-patient and out-patient speciality care within 5 years prior to index (ICD-10)/1987 (ICD-9) unless stated otherwise.",
   "Derived from diagnoses in all positions, in-patient and out-patient speciality care within 10 years prior to index using ICD-9/10 according to Ludvigsson, 2021 (see reference).",
-  "Medications derived from dispensed prescriptions within 4 months prior to baseline (non-GDMT) and 4 months prior up until day before baseline and 12 months +/- 2 months after baseline respectively (GDMT)."
+  "Medications derived from dispensed prescriptions within 4 months prior to baseline (non-GDMT) and 4 months prior up until day before baseline and 18 months +/- 2 months after baseline respectively (GDMT)."
 )
 
 vars_xls <- vars %>%

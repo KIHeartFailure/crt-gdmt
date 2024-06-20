@@ -5,7 +5,6 @@ library(kableExtra)
 # data import/export
 library(haven)
 library(openxlsx)
-# library(xlsx)
 
 # general dm
 library(purrr)
@@ -17,9 +16,6 @@ library(lubridate)
 library(forcats)
 library(hfmisc)
 library(here)
-
-# desk stat
-library(tableone)
 
 # plots
 library(ggplot2)
