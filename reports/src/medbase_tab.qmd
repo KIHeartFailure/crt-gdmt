@@ -226,3 +226,25 @@ medtabfunc(data = rsdata %>% filter(sos_durationhf_cat == "10-18"))
 
 medtabfunc(data = rsdata %>% filter(sos_durationhf_cat == ">=19"))
 ```
+
+```{r}
+#| label: tbl-med-sensclassi
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - sensitivity analyses Class I recommendation according to 2021 guidelines"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senspop))
+```
+
+```{r}
+#| label: tbl-med-excontrols
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - sensitivity analyses excluding controls who recieved CRT during follow-up"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senscrtfu))
+```

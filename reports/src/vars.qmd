@@ -5,12 +5,11 @@
 #| tbl-cap: "Variable definitions and data sources"
 #| tbl-pos: "H"
 
-vars <- tibble(var = c("bbl", "rasiarni", "mra", "loop", tabvars)) %>%
+vars <- tibble(var = c("bbl", "rasiarni", "mra", "loop", "crt", setdiff(tabvars, c("shf_qrslbbb", "diff_crt_shf_cat", "absdiff_crt_shf")))) %>%
   mutate(
     order = 1:n(),
     # if recoding or categorizing will still get org label
-    var_tmp = str_replace_all(var, "(_cat2|_cat)", ""),
-    var_tmp = str_replace_all(var_tmp, "(abs)", "")
+    var_tmp = str_replace_all(var, "(_cat2|_cat)", "")
   ) %>%
   group_by(var_tmp) %>%
   slice(1) %>%
@@ -75,6 +74,7 @@ vars <- vars %>%
     ),
     data3 = if_else(str_detect(var, "scb_famtype|scb_education|scb_dispincome"), "LISA", NA),
     data4 = if_else(str_detect(var, "scb_child"), "RTP", NA),
+    data5 = if_else(str_detect(var, "icdpm_|crt"), "ICD & PM Registry", NA),
     footnote1 = if_else(str_detect(var, "sos_com") &
       !Variable %in% c("Charlson Comorbidity Index"),
     footnote_marker_alphabet(1, format = "latex"), ""
@@ -83,15 +83,9 @@ vars <- vars %>%
     footnote3 = if_else(str_detect(var, "sos_lm|bbl|rasiarni|mra|loop"), footnote_marker_alphabet(3, format = "latex"), "")
   ) %>%
   unite(datasource, starts_with("data"), sep = "; ", na.rm = TRUE) %>%
-  # mutate(
-  #  datasource = case_when(
-  #    TRUE ~ datasource
-  #  )
-  # ) %>%
   unite(footnote, starts_with("footnote"), sep = "") %>%
   arrange(order) %>%
-  mutate(datasource = paste0(datasource, footnote)) %>%
-  select(Variable, datasource)
+  select(Variable, datasource, footnote)
 
 footnotetext <- c(
   "Derived from diagnoses/operations in all positions, in-patient and out-patient speciality care within 5 years prior to index (ICD-10)/1987 (ICD-9) unless stated otherwise.",
@@ -101,9 +95,11 @@ footnotetext <- c(
 
 vars_xls <- vars %>%
   mutate(
+    datasource = paste0(datasource, footnote),
     datasource = str_remove_all(datasource, "textsuperscript|\\}|\\{"),
     datasource = str_replace_all(datasource, "\\\\", " ")
   ) %>%
+  select(Variable, datasource) %>%
   add_row(Variable = "") %>%
   add_row(Variable = paste0("a ", footnotetext[1])) %>%
   add_row(Variable = paste0("b ", footnotetext[2])) %>%
@@ -116,8 +112,11 @@ make_one_xlsxsheet(vars_xls,
 vars <- vars %>%
   mutate(
     # so no probs
-    Variable = sanitize_text(Variable)
-  )
+    Variable = sanitize_text(Variable), 
+    datasource = sanitize_text(datasource),
+    datasource = paste0(datasource, footnote)
+  ) %>% 
+  select(Variable, datasource)
 
 default_kable(vars,
   escape = FALSE,

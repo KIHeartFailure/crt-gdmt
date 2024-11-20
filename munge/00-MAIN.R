@@ -39,6 +39,8 @@ save(
     "imprsdatadurhf1",
     "imprsdatadurhf2",
     "imprsdatadurhf3",
+    "imprsdatasenspop",
+    "imprsdatasenscrtfu",
     "rsdata_fu",
     "flow",
     "modvars",

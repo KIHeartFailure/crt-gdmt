@@ -156,6 +156,11 @@ The dose taken by the patient was evaluated using the strength of the tablet pre
 
 Since the strength of the pills for ARNi were based on an assumption a sensitivity analyses was performed excluding patients receiving ARNi at baseline or fu.
 
+A sensitivity analyses was performed only for the patients fulfilling the Class of Recommendation I in 2021 ESC HF guidelines, i.e., 
+patients with sinus rhythm, EF < 30%, QRS $\ge$ 150 ms and LBBB. 
+
+A sensitivity analyses was performed excluding the controls that received a CRT during follow-up. 
+
 #### Subgroup analyses
 
 Subgroup analyses were performed by systolic blood pressure and HF duration. 

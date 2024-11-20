@@ -10,6 +10,10 @@ tabvars <- c(
   "shf_age_cat",
 
   # organizational
+  "shf_qrs",
+  "shf_qrs_cat",
+  "shf_lbbb",
+  "shf_ef",
   "sos_durationhf",
   "sos_durationhf_cat",
   "sos_prevhfh1yr",
@@ -45,11 +49,13 @@ tabvars <- c(
   "sos_lm_antiarrhythmic",
   "sos_com_icd",
   "sos_com_pm",
+  "icdpm_prioricdpm",
 
   # comorbs
   "sos_com_diabetes",
   # "sos_com_renal",
   "sos_com_af",
+  "shf_ekg",
   "sos_com_ihd",
   "sos_com_hypertension",
   "sos_com_pad",
@@ -77,11 +83,15 @@ tabvars <- c(
 # Variables for models (imputation, log, cox reg) ----------------------------
 
 tabvars_not_in_mod <- c(
+  "shf_qrs",
+  "shf_qrs_cat",
+  "shf_lbbb",
   "diff_crt_shf_cat",
   "absdiff_crt_shf",
   # demo
   "sos_durationhf",
   "shf_age",
+  "shf_ef",
   "shf_nyha",
   "shf_bpsys",
   "shf_bpdia",
@@ -97,8 +107,10 @@ tabvars_not_in_mod <- c(
   "sos_lm_oralantidiabetic",
   "sos_com_icd",
   "sos_com_pm",
+  "icdpm_prioricdpm",
 
   # comorbs
+  "shf_ekg",
   "sos_com_pci",
   "sos_com_cabg",
   "sos_com_dementia",
@@ -130,7 +142,9 @@ metavars <- bind_rows(
       "sos_lm_nitrate",
       "sos_lm_antiarrhythmic",
       "sos_com_icd",
-      "sos_com_pm"
+      "sos_com_pm",
+      "shf_qrslbbb",
+      "icdpm_prioricdpm"
     ),
     label = c(
       "Time CRT to SwedeHF registration",
@@ -151,9 +165,11 @@ metavars <- bind_rows(
       "Nitrate",
       "Antiarrhythmic",
       "ICD",
-      "Pacemaker"
+      "Pacemaker",
+      "QRS/LBBB",
+      "Upgrade from PM/ICD"
     ),
-    unit = c("days", rep(NA, 18))
+    unit = c("days", rep(NA, 20))
   )
 )
 

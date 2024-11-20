@@ -61,3 +61,6 @@ imprsdatahypo <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == "<110" & !is.na
 imprsdatadurhf1 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "3-9")
 imprsdatadurhf2 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "10-18")
 imprsdatadurhf3 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == ">=19")
+
+imprsdatasenspop <- mice::filter(imprsdata, rsdata$senspop)
+imprsdatasenscrtfu <- mice::filter(imprsdata, rsdata$senscrtfu)

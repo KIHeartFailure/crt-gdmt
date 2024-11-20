@@ -145,3 +145,25 @@ medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "10-18"), impdata = impr
 
 medfunc2(data = rsdata %>% filter(sos_durationhf_cat == ">=19"), impdata = imprsdatadurhf3, novars = c("sos_durationhf_cat"))
 ```
+
+```{r}
+#| label: tbl-logregmed-sensclassi2
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - sensitivity analyses Class I recommendation according to 2021 guidelines"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(senspop), impdata = imprsdatasenspop)
+```
+
+```{r}
+#| label: tbl-logregmed-excontrols2
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - sensitivity analyses excluding controls who recieved CRT during follow-up"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(senscrtfu), impdata = imprsdatasenscrtfu)
+```

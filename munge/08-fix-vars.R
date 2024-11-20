@@ -93,7 +93,26 @@ rsdata <- rsdata %>%
     bbldiff_inccat2 = fct_collapse(bbldiff_cat, "Increase/Stable" = c("Increase", "Stable")),
     loopdiff_inccat2 = fct_collapse(loopdiff_cat, "Increase/Stable" = c("Increase", "Stable")),
     rasiarnidiff_inccat2 = fct_collapse(rasiarnidiff_cat, "Increase/Stable" = c("Increase", "Stable")),
-    rasiarnidiff_exarni_inccat2 = fct_collapse(rasiarnidiff_exarni_cat, "Increase/Stable" = c("Increase", "Stable"))
+    rasiarnidiff_exarni_inccat2 = fct_collapse(rasiarnidiff_exarni_cat, "Increase/Stable" = c("Increase", "Stable")),
+    # shf_qrs = if_else(diff_crt_shf > 0 & crt == "CRT", NA_real_, shf_qrs), # done in pop_selection
+    shf_qrs_cat = factor(case_when(
+      is.na(shf_qrs) ~ NA_real_,
+      shf_qrs < 130 ~ 1,
+      shf_qrs < 150 ~ 2,
+      shf_qrs >= 150 ~ 3,
+    ), levels = 1:3, labels = c("<130", "130-149", ">=150")),
+    shf_qrslbbb = factor(
+      case_when(
+        is.na(shf_qrs) | is.na(shf_lbbb) ~ NA_real_,
+        shf_qrs_cat == "130-149" & shf_lbbb == "Yes" ~ 1,
+        shf_qrs_cat == ">=150" & shf_lbbb == "Yes" ~ 2,
+        shf_qrs_cat == ">=150" & shf_lbbb == "No" ~ 3,
+        TRUE ~ 4
+      ),
+      levels = 1:4,
+      labels = c("QRS 130-149 & LBBB", "QRS >=150 & LBBB", "QRS >=150 & non-LBBB", "Other")
+    )
+    # shf_lbbb = if_else(diff_crt_shf > 0 & crt == "CRT", NA, shf_lbbb) # done in pop_selection
   )
 
 # income

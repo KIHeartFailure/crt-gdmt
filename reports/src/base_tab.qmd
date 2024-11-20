@@ -171,9 +171,9 @@ basetabfunc <- function(data, novars = NULL) {
       ),
       # small fixes
       Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-      `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
-      pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat"), "0", pmis),
-      p = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat"), "-", p)
+      `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT", "icdpm_prioricdpm"), "-", `No CRT`),
+      pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat", "icdpm_prioricdpm"), "0", pmis),
+      p = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat", "icdpm_prioricdpm"), "-", p)
     )
 
   # footnotes
@@ -263,4 +263,26 @@ basetabfunc(data = rsdata)
 #| tbl-pos: "H"
 
 basetabfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)), novars = "shf_bpsys_cat")
+```
+
+```{r}
+#| label: tbl-base-sensclassi
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - sensitivity analyses Class I recommendation according to 2021 guidelines"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(senspop), novars = c("shf_qrs_cat", "shf_lbbb", "shf_ef", "shf_ekg"))
+```
+
+```{r}
+#| label: tbl-base-excontrols
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - sensitivity analyses excluding controls who recieved CRT during follow-up"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(senscrtfu))
 ```
