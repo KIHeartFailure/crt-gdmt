@@ -5,8 +5,8 @@
 
 size_use <- 20
 
-sankeyfunc <- function(med, medname) {
-  sankeydata <- rsdata %>%
+sankeyfunc <- function(data, med, medname) {
+  sankeydata <- data %>%
     group_by(crt) %>%
     count(!!sym(paste0("sos_lm_", med, "1")), !!sym(paste0("sos_lm_", med, "2"))) %>%
     ungroup() %>%
@@ -68,8 +68,8 @@ sankeyfunc <- function(med, medname) {
 #| layout-ncol: 1
 #| layout-nrow: 2
 
-sankeyfunc(med = gdmt$var[1], medname = gdmt$label[1])
-sankeyfunc(med = gdmt$var[2], medname = gdmt$label[2])
+sankeyfunc(data = rsdata, med = gdmt$var[1], medname = gdmt$label[1])
+sankeyfunc(data = rsdata, med = gdmt$var[2], medname = gdmt$label[2])
 ```
 
 ```{r}
@@ -84,6 +84,38 @@ sankeyfunc(med = gdmt$var[2], medname = gdmt$label[2])
 #| layout-ncol: 1
 #| layout-nrow: 2
 
-sankeyfunc(med = gdmt$var[3], medname = gdmt$label[3])
-sankeyfunc(med = gdmt$var[4], medname = gdmt$label[4])
+sankeyfunc(data = rsdata, med = gdmt$var[3], medname = gdmt$label[3])
+sankeyfunc(data = rsdata, med = gdmt$var[4], medname = gdmt$label[4])
+```
+
+```{r}
+#| label: fig-sankey-1-pp
+#| cache: true
+#| cache.comments: false
+#| dependson: sankeyfunc
+#| fig-cap: "Path Baseline - 1.5 year follow-up - Per-protocol"
+#| fig-subcap: !expr gdmt$label[1:2]
+#| fig-height: 4
+#| fig-width: 10
+#| layout-ncol: 1
+#| layout-nrow: 2
+
+sankeyfunc(data = rsdata %>% filter(senscrtfu), med = gdmt$var[1], medname = gdmt$label[1])
+sankeyfunc(data = rsdata %>% filter(senscrtfu), med = gdmt$var[2], medname = gdmt$label[2])
+```
+
+```{r}
+#| label: fig-sankey-2-pp
+#| cache: true
+#| cache.comments: false
+#| dependson: sankeyfunc
+#| fig-cap: "Path Baseline - 1.5 year follow-up - Per-protocol"
+#| fig-subcap: !expr gdmt$label[3:4]
+#| fig-height: 4
+#| fig-width: 10
+#| layout-ncol: 1
+#| layout-nrow: 2
+
+sankeyfunc(data = rsdata %>% filter(senscrtfu), med = gdmt$var[3], medname = gdmt$label[3])
+sankeyfunc(data = rsdata %>% filter(senscrtfu), med = gdmt$var[4], medname = gdmt$label[4])
 ```

@@ -159,7 +159,7 @@ Since the strength of the pills for ARNi were based on an assumption a sensitivi
 A sensitivity analyses was performed only for the patients fulfilling the Class of Recommendation I in 2021 ESC HF guidelines, i.e., 
 patients with sinus rhythm, EF < 30%, QRS $\ge$ 150 ms and LBBB. 
 
-A sensitivity analyses was performed excluding the controls that received a CRT during follow-up. 
+A sensitivity analyses was performed excluding the controls that received a CRT during follow-up ("Per-protocol"). 
 
 #### Subgroup analyses
 
@@ -193,16 +193,6 @@ The association between CRT compared to No CRT and increase in GDMT and decrease
 Partly crude, partly adjusting for all variables indicated in @tbl-base together with the baseline medications and 
 partly adjusting for all variables together with the change variable for the other GDMT and loop diuretic. 
 
-## Predictors of increase in GDMT and decrease in loop diuretic
-
-The association between baseline characteristics and increase in each of the GDMT was evaluated using a multivariable logistic regression 
-including the variables shown in the forestplots. The variables were selected based on clinical relevance. The difference between CRT and No CRT was evaluated using an interaction effect (the estimates presented are therefore from different multivariable models).  
-
-### Assumptions
-
-Possible outliers were evaluated using Cook's distance and multicollinearity was 
-evaluated using the Variance Inflation Factor (VIF). No action was deemed necessary.  
-
 ## 1.5 year follow-up systolic blood pressure and eGFR
 
 For a subset of patients follow-up registrations where available. Follow-up registrations 18 months $\pm$ 2 months 
@@ -226,9 +216,27 @@ percfem <- rsdata %>%
   mutate(perc = fn(n / sum(n) * 100, 0)) %>%
   filter(shf_sex == "Female") %>%
   pull(perc)
+
+medpp <- rsdata %>%
+  filter(senscrtfu) %>%
+  summarise(
+    med = fn(median(shf_age), dig = 0),
+    q1 = fn(quantile(shf_age, probs = 0.25), dig = 0),
+    q3 = fn(quantile(shf_age, probs = 0.75), dig = 0)
+  ) %>%
+  mutate(out = paste0(med, " (", q1, "-", q3, ")")) %>%
+  pull(out)
+
+percfempp <- rsdata %>%
+  filter(senscrtfu) %>%
+  count(shf_sex) %>%
+  mutate(perc = fn(n / sum(n) * 100, 0)) %>%
+  filter(shf_sex == "Female") %>%
+  pull(perc)
 ```
 
-The median (q1-q3) age is `r med` and `r percfem`% females.    
+The median (q1-q3) age is `r med` and `r percfem`% females. Excluding the controls that received a CRT during follow-up the 
+median (q1-q3) age is `r medpp` and `r percfempp`% females
 
 ## Baseline characteristics
 
@@ -253,12 +261,6 @@ The median (q1-q3) age is `r med` and `r percfem`% females.
 {{< include src/med_logreg.qmd >}}
 
 {{< include src/med_logreg_decrease.qmd >}}
-
-\clearpage
-
-## Predictors of increase in GDMT and decrease in loop diuretic
-
-{{< include src/predictors.qmd >}}
 
 \clearpage
 

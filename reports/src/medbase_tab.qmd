@@ -239,12 +239,67 @@ medtabfunc(data = rsdata %>% filter(senspop))
 ```
 
 ```{r}
-#| label: tbl-med-excontrols
+#| label: tbl-med-pp
 #| cache: true
 #| cache.comments: false
 #| dependson: medtabfunc
-#| tbl-cap: "Use of GDMT and loop diuretic - sensitivity analyses excluding controls who recieved CRT during follow-up"
+#| tbl-cap: "Use of GDMT and loop diuretic - Per-protocol"
 #| tbl-pos: "H"
 
 medtabfunc(data = rsdata %>% filter(senscrtfu))
+```
+
+```{r}
+#| label: tbl-med-pp-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - Per-protocol - systolic blood pressure < 110 (mmHg)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senscrtfu & shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)))
+```
+
+```{r}
+#| label: tbl-med-pp-durhf1
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - Per-protocol - duration of HF 3-9 (months)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senscrtfu & sos_durationhf_cat == "3-9"))
+```
+
+```{r}
+#| label: tbl-med-pp-durhf2
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - Per-protocol - duration of HF 10-18 (months)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senscrtfu & sos_durationhf_cat == "10-18"))
+```
+
+```{r}
+#| label: tbl-med-pp-durhf3
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - Per-protocol - duration of HF >= 19 (months)"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senscrtfu & sos_durationhf_cat == ">=19"))
+```
+
+```{r}
+#| label: tbl-med-pp-sensclassi
+#| cache: true
+#| cache.comments: false
+#| dependson: medtabfunc
+#| tbl-cap: "Use of GDMT and loop diuretic - Per-protocol - sensitivity analyses Class I recommendation according to 2021 guidelines"
+#| tbl-pos: "H"
+
+medtabfunc(data = rsdata %>% filter(senscrtfu & senspop))
 ```

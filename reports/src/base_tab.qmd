@@ -277,12 +277,34 @@ basetabfunc(data = rsdata %>% filter(senspop), novars = c("shf_qrs_cat", "shf_lb
 ```
 
 ```{r}
-#| label: tbl-base-excontrols
+#| label: tbl-base-pp
 #| cache: true
 #| cache.comments: false
 #| dependson: basetabfunc
-#| tbl-cap: "Baseline characteristics - sensitivity analyses excluding controls who recieved CRT during follow-up"
+#| tbl-cap: "Baseline characteristics - Per-protocol"
 #| tbl-pos: "H"
 
 basetabfunc(data = rsdata %>% filter(senscrtfu))
+```
+
+```{r}
+#| label: tbl-base-pp-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - Per-protocol - systolic blood pressure < 110 (mmHg)"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(senscrtfu & shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)), novars = "shf_bpsys_cat")
+```
+
+```{r}
+#| label: tbl-base-pp-sensclassi
+#| cache: true
+#| cache.comments: false
+#| dependson: basetabfunc
+#| tbl-cap: "Baseline characteristics - Per-protocol - sensitivity analyses Class I recommendation according to 2021 guidelines"
+#| tbl-pos: "H"
+
+basetabfunc(data = rsdata %>% filter(senscrtfu & senspop), novars = c("shf_qrs_cat", "shf_lbbb", "shf_ef", "shf_ekg"))
 ```

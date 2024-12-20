@@ -158,12 +158,67 @@ medfunc2(data = rsdata %>% filter(senspop), impdata = imprsdatasenspop)
 ```
 
 ```{r}
-#| label: tbl-logregmed-excontrols2
+#| label: tbl-logregmed-pp2
 #| cache: true
 #| cache.comments: false
 #| dependson: logregmedfunc2
-#| tbl-cap: "Association between CRT and stable/increase in GDMT - sensitivity analyses excluding controls who recieved CRT during follow-up"
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - Per-protocol"
 #| tbl-pos: "H"
 
 medfunc2(data = rsdata %>% filter(senscrtfu), impdata = imprsdatasenscrtfu)
+```
+
+```{r}
+#| label: tbl-logregmed-pp-hypobp2
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - Per-protocol - systolic blood pressure < 110 (mmHg)"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat) & senscrtfu), impdata = imprsdatahypopp, novars = "shf_bpsys_cat")
+```
+
+```{r}
+#| label: tbl-logregmed-pp-durhf12
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - Per-protocol - duration of HF 3-9 (months)"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "3-9" & senscrtfu), impdata = imprsdatadurhf1pp, novars = c("sos_durationhf_cat"))
+```
+
+```{r}
+#| label: tbl-logregmed-pp-durhf22
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - Per-protocol - duration of HF 10-18 (months)"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(sos_durationhf_cat == "10-18" & senscrtfu), impdata = imprsdatadurhf2pp, novars = c("sos_durationhf_cat"))
+```
+
+```{r}
+#| label: tbl-logregmed-pp-durhf32
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - Per-protocol - duration of HF >= 19 (months)"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(sos_durationhf_cat == ">=19" & senscrtfu), impdata = imprsdatadurhf3pp, novars = c("sos_durationhf_cat"))
+```
+
+```{r}
+#| label: tbl-logregmed-pp-sensclassi2
+#| cache: true
+#| cache.comments: false
+#| dependson: logregmedfunc2
+#| tbl-cap: "Association between CRT and stable/increase in GDMT - Per-protocol - sensitivity analyses Class I recommendation according to 2021 guidelines"
+#| tbl-pos: "H"
+
+medfunc2(data = rsdata %>% filter(senspop & senscrtfu), impdata = imprsdatasenspoppp)
 ```

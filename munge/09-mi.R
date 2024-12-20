@@ -64,3 +64,11 @@ imprsdatadurhf3 <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == ">=19")
 
 imprsdatasenspop <- mice::filter(imprsdata, rsdata$senspop)
 imprsdatasenscrtfu <- mice::filter(imprsdata, rsdata$senscrtfu)
+
+imprsdatahypopp <- mice::filter(imprsdata, rsdata$shf_bpsys_cat == "<110" & !is.na(rsdata$shf_bpsys_cat) & rsdata$senscrtfu)
+
+imprsdatadurhf1pp <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "3-9" & rsdata$senscrtfu)
+imprsdatadurhf2pp <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == "10-18" & rsdata$senscrtfu)
+imprsdatadurhf3pp <- mice::filter(imprsdata, rsdata$sos_durationhf_cat == ">=19" & rsdata$senscrtfu)
+
+imprsdatasenspoppp <- mice::filter(imprsdata, rsdata$senspop & rsdata$senscrtfu)

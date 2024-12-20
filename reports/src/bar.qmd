@@ -87,3 +87,23 @@ barfunc()
 
 barfunc(data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)))
 ```
+
+```{r}
+#| label: fig-barplot-pp
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - Per-protocol"
+
+barfunc(data = rsdata %>% filter(senscrtfu))
+```
+
+```{r}
+#| label: fig-barplot-pp-hypobp
+#| cache: true
+#| cache.comments: false
+#| dependson: barfunc
+#| fig-cap: "GDMT and loop diuretic by CRT - Per-protocol - systolic blood pressure < 110 (mmHg)"
+
+barfunc(data = rsdata %>% filter(senscrtfu & shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)))
+```

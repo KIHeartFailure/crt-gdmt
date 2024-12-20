@@ -112,10 +112,10 @@ make_one_xlsxsheet(vars_xls,
 vars <- vars %>%
   mutate(
     # so no probs
-    Variable = sanitize_text(Variable), 
+    Variable = sanitize_text(Variable),
     datasource = sanitize_text(datasource),
     datasource = paste0(datasource, footnote)
-  ) %>% 
+  ) %>%
   select(Variable, datasource)
 
 default_kable(vars,

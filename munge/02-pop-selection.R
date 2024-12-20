@@ -172,7 +172,7 @@ rsdata <- rsdata %>%
   select(-keep)
 flow <- flow %>%
   add_row(
-    Criteria = "Include control posts without prior CRT",
+    Criteria = "Include control posts without CRT prior to or up until 30 days after index",
     Ncrt = nrow(rsdata %>% filter(crt == 1)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )
