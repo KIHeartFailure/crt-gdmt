@@ -1,4 +1,4 @@
-# R code for the project The role of CRT as enables for optimizing guideline directed medical therapy (GDMT) in patients with heart failure and reduced ejection fraction (HFrEF): data from the SwedeHF Registry
+# R code for the project Cardiac resynchronization therapy for enabling guideline-directed pharmacological therapy optimization in heart failure
 
 The aim of this R code is to be transparent and document the data handling 
 and statistical analyses performed for the project.

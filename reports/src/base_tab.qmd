@@ -171,9 +171,9 @@ basetabfunc <- function(data, novars = NULL) {
       ),
       # small fixes
       Variable = str_replace_all(Variable, fixed("Disposable income (100 SEK)"), "Income"),
-      `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT", "icdpm_prioricdpm"), "-", `No CRT`),
-      pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat", "icdpm_prioricdpm"), "0", pmis),
-      p = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat", "icdpm_prioricdpm"), "-", p)
+      `No CRT` = if_else(level %in% c("365-182 prior CRT", "181-91 prior CRT", "90-31 prior CRT", "30-0 prior CRT", "1-30 after CRT"), "-", `No CRT`),
+      pmis = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat", "crt_type"), "0", pmis),
+      p = if_else(var %in% c("absdiff_crt_shf", "diff_crt_shf_cat", "crt_type"), "-", p)
     )
 
   # footnotes

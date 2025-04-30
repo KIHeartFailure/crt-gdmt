@@ -90,7 +90,7 @@ Individual consent was not required, but patients were informed of entry into Sw
 
 ```{r}
 #| label: tbl-flow
-#| cache: true
+#| cache: false
 #| cache.comments: false
 #| tbl-cap: "Information for flowchart"
 #| tbl-pos: "H"
@@ -247,6 +247,10 @@ median (q1-q3) age is `r medpp` and `r percfempp`% females
 ## Assoction between CRT and increase in GDMT and decrease in loop diuretic
 
 {{< include src/medbase_tab.qmd >}}
+
+\clearpage
+
+{{< include src/switch_to_arni.qmd >}}
 
 \clearpage
 

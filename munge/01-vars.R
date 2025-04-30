@@ -4,6 +4,7 @@ tabvars <- c(
   # demo
   "absdiff_crt_shf",
   "diff_crt_shf_cat",
+  "crt_type",
   "indexyear_cat",
   "shf_sex",
   "shf_age",
@@ -47,9 +48,8 @@ tabvars <- c(
   "sos_lm_digoxin",
   "sos_lm_nitrate",
   "sos_lm_antiarrhythmic",
-  "sos_com_icd",
-  "sos_com_pm",
-  "icdpm_prioricdpm",
+  "icdpm_com_icd",
+  "icdpm_com_pm",
 
   # comorbs
   "sos_com_diabetes",
@@ -88,6 +88,7 @@ tabvars_not_in_mod <- c(
   "shf_lbbb",
   "diff_crt_shf_cat",
   "absdiff_crt_shf",
+  "crt_type",
   # demo
   "sos_durationhf",
   "shf_age",
@@ -105,9 +106,8 @@ tabvars_not_in_mod <- c(
   "sos_lm_sglt2",
   "sos_lm_insulin",
   "sos_lm_oralantidiabetic",
-  "sos_com_icd",
-  "sos_com_pm",
-  "icdpm_prioricdpm",
+  "icdpm_com_icd",
+  "icdpm_com_pm",
 
   # comorbs
   "shf_ekg",
@@ -141,10 +141,10 @@ metavars <- bind_rows(
       "sos_lm_digoxin",
       "sos_lm_nitrate",
       "sos_lm_antiarrhythmic",
-      "sos_com_icd",
-      "sos_com_pm",
+      "icdpm_com_icd",
+      "icdpm_com_pm",
       "shf_qrslbbb",
-      "icdpm_prioricdpm"
+      "crt_type"
     ),
     label = c(
       "Time CRT to SwedeHF registration",
@@ -164,10 +164,10 @@ metavars <- bind_rows(
       "Digoxin",
       "Nitrate",
       "Antiarrhythmic",
-      "ICD",
-      "Pacemaker",
+      "Previous ICD",
+      "Previous Pacemaker",
       "QRS/LBBB",
-      "Upgrade from PM/ICD"
+      "CRT type"
     ),
     unit = c("days", rep(NA, 20))
   )

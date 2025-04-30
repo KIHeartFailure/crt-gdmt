@@ -1,0 +1,61 @@
+```{r}
+#| label: arni
+#| cache: true
+#| cache.comments: false
+#| tbl-cap: "Switch from RASi to ARNi"
+#| tbl-pos: "H"
+
+
+arnifunc <- function(data, popname) {
+  out <- data %>%
+    filter(rasiarni_1 & is.na(arni_rasiarni_1)) %>%
+    count(arni_rasiarni_2) %>%
+    mutate(
+      p = fn(n / sum(n) * 100, 1),
+      np = paste0(n, " (", p, "%)"),
+      pop = popname
+    ) %>%
+    filter(!is.na(arni_rasiarni_2)) %>%
+    select(pop, np)
+  return(out)
+}
+
+tab <- arnifunc(data = rsdata, popname = "All")
+tab <- bind_rows(tab, arnifunc(
+  data = rsdata %>% filter(shf_bpsys_cat == "<110" & !is.na(shf_bpsys_cat)),
+  popname = "Systolic blood pressure < 110 (mmHg)"
+))
+tab <- bind_rows(tab, arnifunc(
+  data = rsdata %>% filter(sos_durationhf_cat == "3-9"),
+  popname = "Duration of HF 3-9 (months)"
+))
+tab <- bind_rows(tab, arnifunc(
+  data = rsdata %>% filter(sos_durationhf_cat == "10-18"),
+  popname = "Duration of HF 10-18 (months)"
+))
+tab <- bind_rows(tab, arnifunc(
+  data = rsdata %>% filter(sos_durationhf_cat == ">=19"),
+  popname = "Duration of HF >=19 (months)"
+))
+tab <- bind_rows(tab, arnifunc(
+  data = rsdata %>% filter(senspop),
+  popname = "Sensitivity analyses Class I recommendation according to 2021"
+))
+tab <- bind_rows(tab, arnifunc(
+  data = rsdata %>% filter(senscrtfu),
+  popname = "Per-protocol"
+))
+
+make_one_xlsxsheet(tab, colnames = c("Population", "n (%)"))
+default_kable(tab,
+  col.names = c("Population", "n (%)")
+) %>%
+  footnote(
+    footnote_order = c("general", "symbol", "alphabet"),
+    general_title = "",
+    general = c(
+      "The denominator consists of patients with RASi (and not ARNi) at baseline."
+    ),
+    threeparttable = T
+  )
+```

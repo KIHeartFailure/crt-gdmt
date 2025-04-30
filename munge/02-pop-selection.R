@@ -36,7 +36,10 @@ flow <- flow %>%
   )
 
 rsdata <- rsdata %>%
-  filter(shf_ef_cat == "HFrEF")
+  filter(shf_ef_cat == "HFrEF") %>%
+  mutate(shf_ef_cat = droplevels(shf_ef_cat), 
+         shf_ef = droplevels(shf_ef)
+         )
 flow <- flow %>%
   add_row(
     Criteria = "Include posts with HFrEF",
@@ -44,34 +47,36 @@ flow <- flow %>%
   )
 
 # crt only
-icdpm2 <- icdpm %>%
-  filter(EVENTTYPE == "Intervention" & !PATIENTTYPE %in% c("null", "ILR")) %>%
-  mutate(crttmp = INTERVENTYIONTASKTYPE == "Implantation" &
+crtdata <- icdpm %>%
+  filter(EVENTTYPE == "Intervention" & !PATIENTTYPE %in% c("null", "ILR") &
+    INTERVENTYIONTASKTYPE == "Implantation" &
     DEVICETYPE %in% c("Pacemaker", "ICD") &
     (CRT %in% c(1, 2) | MODE == "DDDR+CRT")) %>%
-  select(LopNr, EVENTDATE, crttmp) %>%
+  mutate(crt_type = factor(if_else(DEVICETYPE %in% c("Pacemaker"), 1, 2), levels = 1:2, labels = c("CRT-P", "CRT-D"))) %>%
+  select(LopNr, EVENTDATE, crt_type) %>%
   distinct() %>%
-  group_by(LopNr, crttmp) %>%
-  arrange(EVENTDATE) %>%
-  slice(1) %>%
-  ungroup() %>%
   group_by(LopNr) %>%
-  arrange(EVENTDATE, desc(crttmp)) %>%
-  mutate(tmppos = 1:n()) %>%
+  arrange(EVENTDATE, desc(crt_type)) %>%
+  slice(1) %>%
   ungroup() %>%
   rename(
     lopnr = LopNr,
     crtdtm = EVENTDATE
   )
 
-crtdata <- icdpm2 %>%
-  filter(crttmp) %>%
-  select(-crttmp) %>%
-  mutate(icdpm_prioricdpm = case_when(
-    tmppos == 1 ~ 0,
-    TRUE ~ 1
-  )) %>%
-  select(-tmppos)
+icdpmdata <- icdpm %>%
+  filter(EVENTTYPE == "Intervention" & !PATIENTTYPE %in% c("null", "ILR") &
+    INTERVENTYIONTASKTYPE == "Implantation" &
+    DEVICETYPE %in% c("Pacemaker", "ICD", "ICD-elektrod", "Pacemakerelektrod")) %>%
+  select(LopNr, EVENTDATE, DEVICETYPE) %>%
+  distinct() %>%
+  group_by(LopNr, DEVICETYPE) %>%
+  arrange(EVENTDATE) %>%
+  slice(1) %>%
+  ungroup() %>%
+  rename(
+    lopnr = LopNr
+  )
 
 rsdata <- left_join(rsdata, crtdata, by = "lopnr") %>%
   mutate(
@@ -91,7 +96,7 @@ rsdata <- left_join(rsdata, crtdata, by = "lopnr") %>%
       TRUE ~ 0
     ),
     crt = if_else(crt == 0 & control == 0, NA, crt),
-    icdpm_prioricdpm = factor(if_else(crt == 1, icdpm_prioricdpm, NA_real_), levels = 0:1, labels = c("No", "Yes"))
+    crt_type = if_else(crt == 1, crt_type, NA)
   ) %>%
   select(-shf_indexdtm)
 
@@ -110,6 +115,37 @@ flow <- flow %>%
     Criteria = "Fullfills criteria for control, QRS >= 130 and LBBB or QRS >= 150 and no LBBB",
     Ncontrol = nrow(rsdata %>% filter(crt == 0))
   )
+
+
+# prior icd pm
+icdpmdata2 <- left_join(rsdata %>% select(lopnr, indexdtm, crt),
+  icdpmdata,
+  by = "lopnr"
+) %>%
+  filter(EVENTDATE < indexdtm) %>%
+  mutate(
+    icdpm_com_pm = if_else(DEVICETYPE %in% c("Pacemaker", "Pacemakerelektrod"), 1, 0),
+    icdpm_com_icd = if_else(DEVICETYPE %in% c("ICD", "ICD-elektrod"), 1, 0),
+  ) %>%
+  select(-EVENTDATE, -DEVICETYPE)
+
+rsdata <- left_join(rsdata,
+  icdpmdata2 %>%
+    filter(icdpm_com_pm == 1) %>%
+    select(-icdpm_com_icd) %>%
+    distinct(),
+  by = c("lopnr", "indexdtm", "crt")
+) %>%
+  mutate(icdpm_com_pm = ynfac(replace_na(icdpm_com_pm, 0)))
+
+rsdata <- left_join(rsdata,
+  icdpmdata2 %>%
+    filter(icdpm_com_icd == 1) %>%
+    select(-icdpm_com_pm) %>%
+    distinct(),
+  by = c("lopnr", "indexdtm", "crt")
+) %>%
+  mutate(icdpm_com_icd = ynfac(replace_na(icdpm_com_icd, 0)))
 
 rsdata <- rsdata %>%
   filter(indexdtm >= ymd("2009-01-01"))
@@ -216,6 +252,7 @@ rsdata <- rsdata %>%
       TRUE ~ F
     ),
     senscrtfu = case_when(
+      indexdtm > (ymd("2022-08-31") - 610) ~ F,
       crt == 0 & as.numeric(crtdtm - indexdtm) <= 610 ~ F,
       TRUE ~ T
     )
@@ -230,7 +267,7 @@ flow <- flow %>%
 
 flow <- flow %>%
   add_row(
-    Criteria = "  Sensitivity analyses (exclude controls who recieved CRT during fu)",
+    Criteria = "  Sensitivity analyses (exclude controls who recieved CRT during fu, exclude also patients included > 2022-08-31 - (1.5 years + 2 months), full coverage of the ICD/PM registry during the fu period)",
     Ncrt = nrow(rsdata %>% filter(crt == 1 & senscrtfu)),
     Ncontrol = nrow(rsdata %>% filter(crt == 0 & senscrtfu))
   )
