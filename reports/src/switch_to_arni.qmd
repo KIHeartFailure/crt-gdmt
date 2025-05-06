@@ -9,14 +9,17 @@
 arnifunc <- function(data, popname) {
   out <- data %>%
     filter(rasiarni_1 & is.na(arni_rasiarni_1)) %>%
+    group_by(crt) %>%
     count(arni_rasiarni_2) %>%
     mutate(
       p = fn(n / sum(n) * 100, 1),
       np = paste0(n, " (", p, "%)"),
       pop = popname
     ) %>%
+    ungroup() %>%
     filter(!is.na(arni_rasiarni_2)) %>%
-    select(pop, np)
+    select(crt, pop, np) %>%
+    pivot_wider(names_from = crt, values_from = np)
   return(out)
 }
 
@@ -46,9 +49,10 @@ tab <- bind_rows(tab, arnifunc(
   popname = "Per-protocol"
 ))
 
-make_one_xlsxsheet(tab, colnames = c("Population", "n (%)"))
+cn <- c("Population", "No CRT", "CRT")
+make_one_xlsxsheet(tab, colnames = cn)
 default_kable(tab,
-  col.names = c("Population", "n (%)")
+  col.names = cn
 ) %>%
   footnote(
     footnote_order = c("general", "symbol", "alphabet"),
