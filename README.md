@@ -24,4 +24,4 @@ Workflow:
 
 ## Publication
 
-... 
+DOI: 10.1002/ejhf.3719
